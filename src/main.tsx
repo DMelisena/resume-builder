@@ -11,11 +11,9 @@ if (!rootEl) {
 } else {
   console.log('Bootstrapping Resume Builder...')
   ReactDOM.createRoot(rootEl).render(
-    <React.StrictMode>
-      <ChakraProvider theme={theme}>
-        <ColorModeScript initialColorMode={theme.config.initialColorMode} />
-        <App />
-      </ChakraProvider>
-    </React.StrictMode>
+    <ChakraProvider theme={theme}>
+      <ColorModeScript initialColorMode={theme.config.initialColorMode} />
+      <App />
+    </ChakraProvider>
   )
 }

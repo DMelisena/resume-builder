@@ -2,12 +2,14 @@ import { Box, BoxProps } from '@chakra-ui/react';
 
 type Props = BoxProps & {
   asButton?: boolean;
+  isDisabled?: boolean;
 };
 
-export default function GradientPill({ asButton, children, ...rest }: Props) {
+export default function GradientPill({ asButton, isDisabled, children, ...rest }: Props) {
   return (
     <Box
       as={asButton ? 'button' : undefined}
+      disabled={isDisabled}
       px={4}
       py={2}
       rounded="lg"
@@ -19,10 +21,11 @@ export default function GradientPill({ asButton, children, ...rest }: Props) {
       color={asButton ? 'black' : 'white'}
       fontWeight="semibold"
       userSelect="none"
-      cursor={asButton ? 'pointer' : 'default'}
+      cursor={asButton && !isDisabled ? 'pointer' : 'default'}
+      opacity={isDisabled ? 0.5 : 1}
       transition="all 0.2s ease-in-out"
       _hover={
-        asButton
+        asButton && !isDisabled
           ? { bg: 'blackAlpha.50', transform: 'translateY(-1px)' }
           : { transform: 'translateY(-1px)' }
       }

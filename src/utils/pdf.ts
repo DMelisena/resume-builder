@@ -161,7 +161,7 @@ export function buildDocDefinition(data: ResumeData, cfg: PdfConfig) {
   return docDefinition;
 }
 
-export async function exportPdf(data: ResumeData | null, cfg: PdfConfig) {
+export async function generatePdf(data: ResumeData | null, cfg: PdfConfig) {
   if (!data) throw new Error("No compiled snapshot found.");
 
   const pdfMakeModule: any =
@@ -183,5 +183,20 @@ export async function exportPdf(data: ResumeData | null, cfg: PdfConfig) {
   const dd = buildDocDefinition(data, cfg);
   const filename =
     sanitizeFilename((data.contact.fullName || "resume") + "_CV") + ".pdf";
-  pdfMake.createPdf(dd).download(filename);
+  
+  const pdf = pdfMake.createPdf(dd);
+  const blob = await new Promise<Blob>((resolve) => pdf.getBlob(resolve));
+
+  return { blob, filename };
+}
+
+export function downloadPdf(blob: Blob, filename: string) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
 }

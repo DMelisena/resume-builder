@@ -43,6 +43,9 @@ export default function PreviewPanel({ data }: Props) {
       border="1px solid"
       borderColor="gray.200"
     >
+      <Heading as="h3" size="md" mb={3}>
+        {t("preview")}
+      </Heading>
       <Stack spacing={3}>
         <Box>
           <Heading size="lg">{data.contact.fullName || "—"}</Heading>

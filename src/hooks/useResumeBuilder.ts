@@ -45,16 +45,21 @@ export function useResumeBuilder() {
   const [form, setForm] = useState<ResumeData>(defaultResume);
   const [compiled, setCompiled] = useState<ResumeData | null>(defaultResume);
   const [config, setConfig] = useState<PdfConfig>(defaultPdfConfig);
+  const [isCompiling, setIsCompiling] = useState(false);
 
-  const compile = () => {
+  const compile = async () => {
+    setIsCompiling(true);
     // snapshot form to compiled
+    await new Promise((resolve) => setTimeout(resolve, 500));
     setCompiled(JSON.parse(JSON.stringify(form)));
+    setIsCompiling(false);
   };
 
   return {
     form, setForm,
     compiled,
     compile,
+    isCompiling,
     config, setConfig,
   };
 }

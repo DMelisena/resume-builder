@@ -9,6 +9,7 @@ import {
   Switch,
   HStack,
   Text,
+  Heading,
 } from "@chakra-ui/react";
 import { useTranslation } from "react-i18next";
 import type { PdfConfig } from "../types";
@@ -30,9 +31,9 @@ export default function PdfConfigPanel({ config, onChange }: Props) {
       border="1px solid"
       borderColor="gray.200"
     >
-      <Text fontWeight="bold" mb={3}>
+      <Heading as="h3" size="md" mb={3}>
         {t("pdfConfig")}
-      </Text>
+      </Heading>
 
       <FormControl mb={4}>
         <FormLabel>
