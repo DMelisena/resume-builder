@@ -1,7 +1,8 @@
 {
   "appName": "Resume Builder",
   "compile": "Compile",
-  "export": "Export",
+  "compiling": "Compiling...",
+  "download": "Download",
   "pdfConfig": "PDF Settings",
   "fontSize": "Font size",
   "hyperlinks": "Hyperlinks",
@@ -36,5 +37,6 @@
   "add": "Add",
   "remove": "Remove",
   "preview": "Preview",
-  "exportError": "Please compile first before exporting."
+  "error": "An error occurred.",
+  "form": "Editor"
 }
