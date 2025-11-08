@@ -44,3 +44,22 @@ src/
 - The "Generate Shareable Link" feature creates a temporary blob URL that is valid for the current session.
 - The UI is designed to be clean and intuitive, with a focus on user experience.
 - Code is modular to allow future AI/ATS integrations.
+
+## TODO:
+Make https://dmelisena.github.io/resume-builder/download to directly download the CV
+It should be like web/{user_name}/download to download their cv
+It should be like web/{user_name} to modify
+It should be like web/UUID if they don't have account (automatically deleted in 7/30 days if unopened)
+Create cookies system in which people progress is saved / the uuid
+Create a database for people to save their CV to
+create a backend for people to give access their CV to
+Make so that they can switch in and out on what they want to put on the CV
+
+## User Flow:
+open the main site
+make their CV
+automatically save their progress
+make an exportable link that they can modify web/{user_name} (can only be accessed by the user)
+make an exportable that they could share and for people to download from web/{user_name}/download 
+have an option to create an account
+
