@@ -1,5 +1,7 @@
 import { Box, Container } from "@chakra-ui/react";
+import { Routes, Route } from "react-router-dom";
 import Home from "./pages/Home";
+import DownloadPdf from "./pages/DownloadPdf";
 import ErrorBoundary from "./components/ErrorBoundary";
 
 export default function App() {
@@ -7,7 +9,10 @@ export default function App() {
     <Box bg="gray.50" minH="100vh">
       <Container maxW="6xl" py={6}>
         <ErrorBoundary>
-          <Home />
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/download" element={<DownloadPdf />} />
+          </Routes>
         </ErrorBoundary>
       </Container>
     </Box>
