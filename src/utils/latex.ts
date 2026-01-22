@@ -46,6 +46,7 @@ export function buildLatex(data: ResumeData, cfg: LatexConfig): string {
   lines.push("\\usepackage[parfill]{parskip}");
   lines.push("\\usepackage{array}");
   lines.push("\\usepackage{ifthen}");
+  lines.push("\\usepackage{hyperref}");
   lines.push("\\usepackage[left=0.4in,top=0.3in,right=0.4in,bottom=0.3in]{geometry}");
   lines.push("");
 
@@ -185,17 +186,21 @@ export function buildLatex(data: ResumeData, cfg: LatexConfig): string {
 
     data.projects.forEach((p) => {
       const projectName = p.name ? escapeLatex(p.name) : "Project";
-      const dates = [p.startDate, p.endDate].filter(Boolean).join(" - ");
-      const title = p.title || "Project";
 
-      lines.push(`\\begin{rSubsection}{${projectName}}{${escapeLatex(dates)}}{${escapeLatex(title)}}{}`);
+      lines.push(`\\textbf{${projectName}}`);
+      if (p.url) {
+        lines.push(` \\href{${escapeLatex(p.url)}}{${escapeLatex(p.url)}}`);
+      }
+      lines.push("\\\\");
 
       const bullets = formatBullets(p.description);
       if (bullets) {
+        lines.push("\\begin{itemize}");
+        lines.push("\\itemsep -0.5em");
         lines.push(bullets);
+        lines.push("\\end{itemize}");
       }
 
-      lines.push("\\end{rSubsection}");
       lines.push("");
     });
 

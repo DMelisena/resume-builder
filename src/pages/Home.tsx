@@ -62,7 +62,7 @@ export default function Home() {
         isCompiling={isCompiling}
         onOpenLatex={() => setIsLatexEditorOpen(true)}
       />
-      <Grid templateColumns={{ base: '1fr', lg: '1fr 1fr' }} gap={4} align="start">
+      <Grid templateColumns={{ base: '1fr', lg: '1fr 1fr' }} gap={4} alignItems="start">
         <GridItem>
           <FormPanel form={form} onChange={setForm} />
         </GridItem>
