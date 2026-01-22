@@ -48,3 +48,13 @@ export type PdfConfig = {
     website: boolean;
   };
 };
+
+export type LatexConfig = {
+  asLinks: {
+    email: boolean;
+    linkedin: boolean;
+    website: boolean;
+  };
+};
+
+export type ExportFormat = "pdf" | "latex";
