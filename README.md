@@ -6,7 +6,14 @@ A minimal, ATS-friendly Harvard-style résumé builder.
 
 ```bash
 npm install
+cd ..
 npm run dev
+```
+
+## Turn On Backend
+
+```bash
+cd backend && npm install && npm Start
 ```
 
 - **Compile** updates the preview with the current form (not automatic).
@@ -47,6 +54,7 @@ src/
 
 ## TODO:
 Make https://dmelisena.github.io/resume-builder/download to directly download the CV
+- Maybe create a github action in which pdf is created and put into that link
 It should be like web/{user_name}/download to download their cv
 It should be like web/{user_name} to modify
 It should be like web/UUID if they don't have account (automatically deleted in 7/30 days if unopened)
@@ -60,6 +68,6 @@ open the main site
 make their CV
 automatically save their progress
 make an exportable link that they can modify web/{user_name} (can only be accessed by the user)
-make an exportable that they could share and for people to download from web/{user_name}/download 
+make an exportable that they could share and for people to download from web/{user_name}/download
 have an option to create an account
 
