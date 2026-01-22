@@ -15,7 +15,7 @@ const defaultResume = {
     {
       school: 'Universitas Gadjah Mada',
       degree: 'Nuclear Engineering',
-      startDate: 'Jul 2025',
+      startDate: 'Jul 2024',
       endDate: '',
       location: 'Yogyakarta, Indonesia',
       notes: 'Graduation Date: Jul 2025'
