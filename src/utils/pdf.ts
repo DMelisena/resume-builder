@@ -9,7 +9,7 @@ function sanitizeFilename(name: string) {
  * Compile LaTeX source to PDF using backend proxy
  */
 async function compileLatexToPdf(latexCode: string): Promise<Blob> {
-  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:3001";
+  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "";
 
   const response = await fetch(`${BACKEND_URL}/api/compile`, {
     method: "POST",
