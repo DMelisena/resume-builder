@@ -1,14 +1,16 @@
 import {
   Box,
   Heading,
-  HStack,
-  Stack,
   Text,
-  Divider,
-  Flex,
-  Spacer,
+  Spinner,
+  Alert,
+  AlertIcon,
+  Button,
+  HStack,
+  useToast,
 } from "@chakra-ui/react";
 import { useTranslation } from "react-i18next";
+import { useState, useEffect, useRef } from "react";
 import type { ResumeData } from "../types";
 
 type Props = {
@@ -17,6 +19,88 @@ type Props = {
 
 export default function PreviewPanel({ data }: Props) {
   const { t } = useTranslation();
+  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const toast = useToast();
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+
+  // Clean up blob URLs on unmount
+  useEffect(() => {
+    return () => {
+      if (pdfUrl) {
+        URL.revokeObjectURL(pdfUrl);
+      }
+    };
+  }, [pdfUrl]);
+
+  // Generate PDF preview when data changes
+  useEffect(() => {
+    if (data) {
+      generatePreview();
+    } else {
+      setPdfUrl(null);
+    }
+  }, [data]);
+
+  async function generatePreview() {
+    if (!data) return;
+
+    setIsLoading(true);
+    setError(null);
+
+    // Clean up previous URL
+    if (pdfUrl) {
+      URL.revokeObjectURL(pdfUrl);
+      setPdfUrl(null);
+    }
+
+    try {
+      const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:3001";
+
+      // Import buildLatex dynamically
+      const { buildLatex } = await import("../utils/latex");
+
+      // Generate LaTeX code
+      const latexCode = buildLatex(data, { asLinks: { email: false, website: false, linkedin: false } });
+
+      // Compile to PDF
+      const response = await fetch(`${BACKEND_URL}/api/compile`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ code: latexCode }),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Compilation failed: ${errorText}`);
+      }
+
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      setPdfUrl(url);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Unknown error";
+      setError(message);
+      toast({
+        title: "Preview generation failed",
+        description: message,
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  function handleRefresh() {
+    generatePreview();
+  }
+
+  // Empty state
   if (!data) {
     return (
       <Box
@@ -32,168 +116,80 @@ export default function PreviewPanel({ data }: Props) {
     );
   }
 
-  const sep = (a?: string, b?: string) => [a, b].filter(Boolean).join(" • ");
-
   return (
     <Box
-      p={6}
       bg="white"
       rounded="lg"
       shadow="sm"
       border="1px solid"
       borderColor="gray.200"
+      overflow="hidden"
     >
-      <Heading as="h3" size="md" mb={3}>
-        {t("preview")}
-      </Heading>
-      <Stack spacing={3}>
-        <Box>
-          <Heading size="lg">{data.contact.fullName || "—"}</Heading>
-          {data.contact.headline && (
-            <Text color="gray.700">{data.contact.headline}</Text>
-          )}
-          <Text color="gray.700">
-            {[
-              data.contact.phone,
-              data.contact.email,
-              data.contact.website,
-              data.contact.linkedin,
-              data.contact.location,
-            ]
-              .filter(Boolean)
-              .join("  •  ")}
-          </Text>
-        </Box>
+      <Box
+        p={4}
+        borderBottom="1px solid"
+        borderColor="gray.200"
+        bg="gray.50"
+      >
+        <HStack justify="space-between">
+          <Heading as="h3" size="sm">
+            {t("preview")}
+          </Heading>
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={handleRefresh}
+            isLoading={isLoading}
+            isDisabled={!data}
+          >
+            Refresh
+          </Button>
+        </HStack>
+      </Box>
 
-        {/* Education */}
-        {data.education?.length ? (
-          <Box>
-            <SectionHeading title={t("education")} />
-            <Stack>
-              {data.education.map((ed, i) => (
-                <Entry
-                  key={i}
-                  left={sep(ed.school, ed.location)}
-                  right={sep(ed.startDate, ed.endDate)}
-                  sub={sep(ed.degree, ed.notes)}
-                />
-              ))}
-            </Stack>
-          </Box>
-        ) : null}
-
-        {/* Experience */}
-        {data.experience?.length ? (
-          <Box>
-            <SectionHeading title={t("experience")} />
-            <Stack>
-              {data.experience.map((ex, i) => (
-                <Box key={i}>
-                  <Entry
-                    left={sep(
-                      [ex.title, ex.company].filter(Boolean).join(" — "),
-                      ex.location
-                    )}
-                    right={sep(ex.startDate, ex.endDate)}
-                  />
-                  {ex.bullets?.split(/\r?\n/).filter(Boolean).length ? (
-                    <Box as="ul" pl={6} mt={1}>
-                      {ex.bullets
-                        .split(/\r?\n/)
-                        .filter(Boolean)
-                        .map((b, j) => (
-                          <Box as="li" key={j}>
-                            <Text>{b}</Text>
-                          </Box>
-                        ))}
-                    </Box>
-                  ) : null}
-                </Box>
-              ))}
-            </Stack>
-          </Box>
-        ) : null}
-
-        {/* Projects */}
-        {data.projects?.length ? (
-          <Box>
-            <SectionHeading title={t("projects")} />
-            <Stack>
-              {data.projects.map((p, i) => (
-                <Box key={i}>
-                  <Entry left={[p.name, p.url].filter(Boolean).join(" — ")} />
-                  {p.description?.split(/\r?\n/).filter(Boolean).length ? (
-                    <Box as="ul" pl={6} mt={1}>
-                      {p.description
-                        .split(/\r?\n/)
-                        .filter(Boolean)
-                        .map((d, j) => (
-                          <Box as="li" key={j}>
-                            <Text>{d}</Text>
-                          </Box>
-                        ))}
-                    </Box>
-                  ) : null}
-                </Box>
-              ))}
-            </Stack>
-          </Box>
-        ) : null}
-
-        {/* Skills */}
-        {data.skills ? (
-          <Box>
-            <SectionHeading title={t("skills")} />
-            <Box as="ul" pl={6} mt={1}>
-              {data.skills
-                .split(/\r?\n/)
-                .filter(Boolean)
-                .map((d, j) => (
-                  <Box as="li" key={j}>
-                    <Text>{d}</Text>
-                  </Box>
-                ))}
+      <Box position="relative" bg="gray.100">
+        {isLoading && (
+          <Box
+            position="absolute"
+            inset={0}
+            display="flex"
+            alignItems="center"
+            justifyContent="center"
+            bg="white/80"
+            zIndex={1}
+          >
+            <Box textAlign="center">
+              <Spinner size="xl" color="blue.500" mb={4} />
+              <Text color="gray.600">Generating preview...</Text>
             </Box>
           </Box>
-        ) : null}
-      </Stack>
-    </Box>
-  );
-}
+        )}
 
-function SectionHeading({ title }: { title: string }) {
-  return (
-    <Box mb={1}>
-      <Text
-        fontWeight="bold"
-        fontSize="sm"
-        letterSpacing="wide"
-        textTransform="uppercase"
-      >
-        {title}
-      </Text>
-      <Divider />
-    </Box>
-  );
-}
+        {error && (
+          <Alert status="error" m={4}>
+            <AlertIcon />
+            {error}
+          </Alert>
+        )}
 
-function Entry({
-  left,
-  right,
-  sub,
-}: {
-  left: string;
-  right?: string;
-  sub?: string;
-}) {
-  return (
-    <Box py={1}>
-      <Flex>
-        <Text fontWeight="semibold">{left}</Text>
-        <Spacer />
-        {right && <Text>{right}</Text>}
-      </Flex>
-      {sub && <Text color="gray.700">{sub}</Text>}
+        {pdfUrl && (
+          <Box
+            as="iframe"
+            ref={iframeRef}
+            src={pdfUrl}
+            width="100%"
+            height="700px"
+            border="none"
+            display="block"
+          />
+        )}
+
+        {!pdfUrl && !isLoading && !error && (
+          <Box p={8} textAlign="center" color="gray.500">
+            Click "Refresh" to generate preview
+          </Box>
+        )}
+      </Box>
     </Box>
   );
 }

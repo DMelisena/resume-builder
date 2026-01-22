@@ -6,11 +6,23 @@ import PreviewPanel from '../components/PreviewPanel';
 import PdfConfigPanel from '../components/PdfConfigPanel';
 import LanguageSwitcher from '../components/LanguageSwitcher';
 import ExportPanel from '../components/ExportPanel';
+import { LatexEditor } from '../components/LatexEditor';
 import { useResumeBuilder } from '../hooks/useResumeBuilder';
 import { generatePdf, downloadPdf } from '../utils/pdf';
 
 export default function Home() {
-  const { form, setForm, compiled, compile, isCompiling, config, setConfig } = useResumeBuilder();
+  const {
+    form,
+    setForm,
+    compiled,
+    compile,
+    isCompiling,
+    config,
+    setConfig,
+    latexConfig,
+    isLatexEditorOpen,
+    setIsLatexEditorOpen,
+  } = useResumeBuilder();
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
 
@@ -44,7 +56,12 @@ export default function Home() {
 
   return (
     <Stack spacing={4}>
-      <Header onCompile={handleCompile} onDownload={handleDownload} isCompiling={isCompiling} />
+      <Header
+        onCompile={handleCompile}
+        onDownload={handleDownload}
+        isCompiling={isCompiling}
+        onOpenLatex={() => setIsLatexEditorOpen(true)}
+      />
       <Grid templateColumns={{ base: '1fr', lg: '1fr 1fr' }} gap={4}>
         <GridItem>
           <FormPanel form={form} onChange={setForm} />
@@ -58,6 +75,13 @@ export default function Home() {
           </Stack>
         </GridItem>
       </Grid>
+
+      <LatexEditor
+        isOpen={isLatexEditorOpen}
+        onClose={() => setIsLatexEditorOpen(false)}
+        data={compiled}
+        config={latexConfig}
+      />
     </Stack>
   );
 }
