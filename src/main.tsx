@@ -12,7 +12,7 @@ if (!rootEl) {
 } else {
   console.log('Bootstrapping Resume Builder...')
   ReactDOM.createRoot(rootEl).render(
-    <BrowserRouter basename="/resume-builder">
+    <BrowserRouter>
       <ChakraProvider theme={theme}>
         <ColorModeScript initialColorMode={theme.config.initialColorMode} />
         <App />
