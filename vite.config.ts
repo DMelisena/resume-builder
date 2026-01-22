@@ -1,8 +1,22 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
-// ⚠️ Replace <REPO_NAME> with your repository name, e.g. 'resume-builder'
 export default defineConfig({
   plugins: [react()],
-  base: '/resume-builder/',   // <— add this line for GitHub Pages project site
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          // React core
+          'react-core': ['react', 'react-dom', 'react-router-dom'],
+          // Chakra UI
+          'chakra-ui': ['@chakra-ui/react', '@chakra-ui/icons', '@emotion/react', '@emotion/styled', 'framer-motion'],
+          // i18n
+          i18n: ['react-i18next', 'i18next'],
+        },
+      },
+    },
+    // Increase chunk size warning limit
+    chunkSizeWarningLimit: 700,
+  },
 })
