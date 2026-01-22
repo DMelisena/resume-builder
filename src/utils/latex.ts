@@ -203,34 +203,7 @@ export function buildLatex(data: ResumeData, cfg: LatexConfig): string {
     lines.push("");
   }
 
-  // Experience Section (third)
-  if (data.experience?.length) {
-    lines.push("\\begin{rSection}{Experience}");
-    lines.push("");
-
-    data.experience.forEach((ex) => {
-      const company = ex.company ? escapeLatex(ex.company) : "Company";
-      const dates = [ex.startDate, ex.endDate].filter(Boolean).join(" - ");
-      const title = ex.title || "Position";
-      const location = ex.location ? escapeLatex(ex.location) : "";
-
-      const titleWithLocation = location ? `${escapeLatex(title)}, ${escapeLatex(location)}` : escapeLatex(title);
-      lines.push(`\\begin{rSubsection}{${company}}{${escapeLatex(dates)}}{${titleWithLocation}}{}`);
-
-      const bullets = formatBullets(ex.bullets);
-      if (bullets) {
-        lines.push(bullets);
-      }
-
-      lines.push("\\end{rSubsection}");
-      lines.push("");
-    });
-
-    lines.push("\\end{rSection}");
-    lines.push("");
-  }
-
-  // Skills Section (fourth)
+  // Skills Section (third)
   if (data.skills) {
     lines.push("\\begin{rSection}{Skills and Interests}");
     lines.push("");
@@ -269,6 +242,33 @@ export function buildLatex(data: ResumeData, cfg: LatexConfig): string {
 
     lines.push("\\end{tabular}");
     lines.push("");
+    lines.push("\\end{rSection}");
+    lines.push("");
+  }
+
+  // Experience Section (fourth)
+  if (data.experience?.length) {
+    lines.push("\\begin{rSection}{Experience}");
+    lines.push("");
+
+    data.experience.forEach((ex) => {
+      const company = ex.company ? escapeLatex(ex.company) : "Company";
+      const dates = [ex.startDate, ex.endDate].filter(Boolean).join(" - ");
+      const title = ex.title || "Position";
+      const location = ex.location ? escapeLatex(ex.location) : "";
+
+      const titleWithLocation = location ? `${escapeLatex(title)}, ${escapeLatex(location)}` : escapeLatex(title);
+      lines.push(`\\begin{rSubsection}{${company}}{${escapeLatex(dates)}}{${titleWithLocation}}{}`);
+
+      const bullets = formatBullets(ex.bullets);
+      if (bullets) {
+        lines.push(bullets);
+      }
+
+      lines.push("\\end{rSubsection}");
+      lines.push("");
+    });
+
     lines.push("\\end{rSection}");
     lines.push("");
   }
