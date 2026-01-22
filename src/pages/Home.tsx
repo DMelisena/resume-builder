@@ -62,11 +62,11 @@ export default function Home() {
         isCompiling={isCompiling}
         onOpenLatex={() => setIsLatexEditorOpen(true)}
       />
-      <Grid templateColumns={{ base: '1fr', lg: '1fr 1fr' }} gap={4}>
+      <Grid templateColumns={{ base: '1fr', lg: '1fr 1fr' }} gap={4} align="start">
         <GridItem>
           <FormPanel form={form} onChange={setForm} />
         </GridItem>
-        <GridItem>
+        <GridItem position="sticky" top={6} alignSelf="start">
           <Stack spacing={4}>
             <LanguageSwitcher />
             <PdfConfigPanel config={config} onChange={setConfig} />
