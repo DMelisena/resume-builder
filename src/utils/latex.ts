@@ -191,7 +191,6 @@ export function buildLatex(data: ResumeData, cfg: LatexConfig): string {
       if (p.url) {
         lines.push(` \\href{${escapeLatex(p.url)}}{${escapeLatex(p.url)}}`);
       }
-      lines.push("\\\\");
 
       const bullets = formatBullets(p.description);
       if (bullets) {
