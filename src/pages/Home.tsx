@@ -1,4 +1,4 @@
-import { Grid, GridItem, Stack } from '@chakra-ui/react';
+import { Box, Grid, GridItem, Stack } from '@chakra-ui/react';
 import { useState, useEffect } from 'react';
 import Header from '../components/Header';
 import FormPanel from '../components/FormPanel';
@@ -62,16 +62,18 @@ export default function Home() {
         isCompiling={isCompiling}
         onOpenLatex={() => setIsLatexEditorOpen(true)}
       />
-      <Grid templateColumns={{ base: '1fr', lg: '1fr 1fr' }} gap={4} alignItems="start">
+      <Grid templateColumns={{ base: '1fr', lg: '1fr 1fr' }} gap={4}>
         <GridItem>
           <FormPanel form={form} onChange={setForm} />
         </GridItem>
-        <GridItem position="sticky" top={6} alignSelf="start">
-          <Stack spacing={4}>
+        <GridItem h="full">
+          <Stack spacing={4} h="full">
             <LanguageSwitcher />
             <PdfConfigPanel config={config} onChange={setConfig} />
             <ExportPanel onGenerate={handleExport} pdfUrl={pdfUrl} isGenerating={isGenerating} />
-            <PreviewPanel data={compiled} />
+            <Box position="sticky" top={6}>
+              <PreviewPanel data={compiled} />
+            </Box>
           </Stack>
         </GridItem>
       </Grid>
