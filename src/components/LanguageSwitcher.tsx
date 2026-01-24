@@ -23,7 +23,7 @@ export default function LanguageSwitcher() {
           {t('english')}
         </Button>
         <Button onClick={() => i18n.changeLanguage('es')} isActive={current.startsWith('es')}>
-          {t('spanish')}
+          {t('Japanese')}
         </Button>
       </ButtonGroup>
     </Box>
