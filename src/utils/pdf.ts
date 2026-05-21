@@ -1,5 +1,6 @@
 import type { ResumeData, PdfConfig } from "../types";
 import { buildLatex } from "./latex";
+import { getBackendUrl } from "./backend";
 
 function sanitizeFilename(name: string) {
   return name.replace(/[^a-z0-9\u00C0-\u024F\s._-]+/gi, "_").trim() || "resume";
@@ -9,7 +10,7 @@ function sanitizeFilename(name: string) {
  * Compile LaTeX source to PDF using backend proxy
  */
 async function compileLatexToPdf(latexCode: string): Promise<Blob> {
-  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "";
+  const BACKEND_URL = getBackendUrl();
 
   const response = await fetch(`${BACKEND_URL}/api/compile`, {
     method: "POST",

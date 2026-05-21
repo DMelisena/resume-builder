@@ -12,6 +12,7 @@ import {
 import { useTranslation } from "react-i18next";
 import { useState, useEffect, useRef } from "react";
 import type { ResumeData } from "../types";
+import { getBackendUrl } from "../utils/backend";
 
 type Props = {
   data: ResumeData | null;
@@ -56,7 +57,7 @@ export default function PreviewPanel({ data }: Props) {
     }
 
     try {
-      const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "";
+      const BACKEND_URL = getBackendUrl();
 
       // Import buildLatex dynamically
       const { buildLatex } = await import("../utils/latex");
