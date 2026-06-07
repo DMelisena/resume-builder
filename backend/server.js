@@ -16,7 +16,14 @@ app.use(express.json({ limit: "5mb" }));
 const distPath = path.join(__dirname, "../dist");
 app.use(express.static(distPath));
 
-async function generatePdf(data) {
+async function generatePdf(data, template = "english") {
+  if (template === "jp-portfolio") {
+    return generateJpPdf(data);
+  }
+  return generateEnglishPdf(data);
+}
+
+async function generateEnglishPdf(data) {
   const pdfDoc = await PDFDocument.create();
   let page = pdfDoc.addPage([612, 792]); // Letter size 8.5 x 11
   const font = await pdfDoc.embedFont(StandardFonts.TimesRoman);
@@ -262,14 +269,262 @@ async function generatePdf(data) {
   return await pdfDoc.save();
 }
 
+/**
+ * 職務経歴書 (Shokumukeirekisho) layout — Japanese engineer portfolio.
+ * Uses A4 paper. Section order matches the LaTeX jp-portfolio template:
+ *   Contact → Summary → Skills → Projects → Experience → Education
+ *
+ * NOTE: pdf-lib StandardFonts lack CJK glyphs. Labels use English + romaji.
+ * For proper Japanese character rendering, use the LaTeX → Overleaf path.
+ */
+async function generateJpPdf(data) {
+  const pdfDoc = await PDFDocument.create();
+  let page = pdfDoc.addPage([595, 842]); // A4 size
+  const font = await pdfDoc.embedFont(StandardFonts.TimesRoman);
+  const fontBold = await pdfDoc.embedFont(StandardFonts.TimesRomanBold);
+  const fontItalic = await pdfDoc.embedFont(StandardFonts.TimesRomanItalic);
+
+  const { width, height } = page.getSize();
+  let y = height - 45;
+  const margin = 45;
+  const contentWidth = width - margin * 2;
+
+  const checkPageBreak = (neededSpace = 12) => {
+    if (y < margin + neededSpace) {
+      page = pdfDoc.addPage([595, 842]);
+      y = height - 45;
+    }
+  };
+
+  const drawText = (text, options = {}) => {
+    checkPageBreak();
+    page.drawText(text, {
+      x: options.x || margin,
+      y,
+      size: options.size || 10,
+      font: options.font || font,
+      color: options.color || rgb(0, 0, 0),
+    });
+  };
+
+  const drawTextLine = (text, options = {}) => {
+    checkPageBreak();
+    page.drawText(text, {
+      x: options.x || margin,
+      y,
+      size: options.size || 10,
+      font: options.font || font,
+      color: options.color || rgb(0, 0, 0),
+    });
+    if (options.moveDown !== false) y -= 13;
+  };
+
+  const drawCentered = (text, size, fontToUse) => {
+    const textWidth = fontToUse.widthOfTextAtSize(text, size);
+    drawText(text, { x: (width - textWidth) / 2, size, font: fontToUse });
+  };
+
+  const drawRightAligned = (text, size, fontToUse) => {
+    const textWidth = fontToUse.widthOfTextAtSize(text, size);
+    page.drawText(text, { x: width - margin - textWidth, y, size, font: fontToUse });
+  };
+
+  const drawLine = () => {
+    checkPageBreak(5);
+    page.drawLine({
+      start: { x: margin, y: y - 2 },
+      end: { x: width - margin, y: y - 2 },
+      thickness: 0.8,
+      color: rgb(0.1, 0.1, 0.1),
+    });
+    y -= 5;
+  };
+
+  const wrapText = (text, maxWidth, size, fontToUse) => {
+    const words = text.split(" ");
+    const lines = [];
+    let currentLine = words[0];
+    for (let i = 1; i < words.length; i++) {
+      const width = fontToUse.widthOfTextAtSize(`${currentLine} ${words[i]}`, size);
+      if (width < maxWidth) {
+        currentLine += ` ${words[i]}`;
+      } else {
+        lines.push(currentLine);
+        currentLine = words[i];
+      }
+    }
+    lines.push(currentLine);
+    return lines;
+  };
+
+  const drawSectionTitle = (title) => {
+    checkPageBreak(25);
+    y -= 2;
+    const tw = fontBold.widthOfTextAtSize(title, 12);
+    const barStart = margin + tw + 8;
+    const barEnd = width - margin;
+    page.drawText(title, { x: margin, y, size: 12, font: fontBold, color: rgb(0.05, 0.05, 0.05) });
+    page.drawLine({
+      start: { x: barStart, y: y - 2 },
+      end: { x: barEnd, y: y - 2 },
+      thickness: 0.6,
+      color: rgb(0.6, 0.6, 0.6),
+    });
+    y -= 14;
+  };
+
+  // --- HEADER ---
+  const jpDate = new Date().toLocaleDateString("ja-JP", { year: "numeric", month: "short", day: "numeric" });
+  drawRightAligned(`${jpDate}`, 8, font);
+  y -= 8;
+
+  if (data.contact.fullName) {
+    drawCentered("Shokumukeirekisho", 12, fontBold);
+    y -= 14;
+    drawCentered(data.contact.fullName.toUpperCase(), 18, fontBold);
+    y -= 18;
+  }
+
+  // Contact
+  const contactLines = [];
+  const line1 = [data.contact.phone, data.contact.location].filter(Boolean).join(" | ");
+  if (line1) contactLines.push(line1);
+  const line2Parts = [data.contact.website, data.contact.email, data.contact.linkedin].filter(Boolean);
+  if (line2Parts.length) contactLines.push(line2Parts.join(" | "));
+  contactLines.forEach((line) => {
+    drawCentered(line, 9, font);
+    y -= 12;
+  });
+  y -= 8;
+
+  // --- SUMMARY (職務要約 / 自己PR) ---
+  if (data.contact.headline) {
+    drawSectionTitle("SUMMARY");
+    const lines = wrapText(data.contact.headline, contentWidth, 10, font);
+    lines.forEach((line) => drawTextLine(line, { size: 10, font }));
+    y -= 8;
+  }
+
+  // --- SKILLS (first — engineer priority in JP portfolios) ---
+  if (data.skills) {
+    drawSectionTitle("SKILLS");
+    const categories = data.skills.split("|").map((s) => s.trim()).filter(Boolean);
+    for (const cat of categories) {
+      const idx = cat.indexOf(":");
+      if (idx > 0) {
+        const category = cat.substring(0, idx).trim();
+        const items = cat.substring(idx + 1).trim();
+        checkPageBreak();
+        const catWidth = fontBold.widthOfTextAtSize(category, 10);
+        page.drawText(category, { x: margin, y, size: 10, font: fontBold });
+        const lines = wrapText(items, contentWidth - catWidth - 12, 10, font);
+        lines.forEach((line, i) => {
+          if (i === 0) {
+            page.drawText(line, { x: margin + catWidth + 10, y, size: 10, font });
+          } else {
+            page.drawText(line, { x: margin + catWidth + 10, y, size: 10, font });
+          }
+          y -= 13;
+        });
+        y -= 2;
+      }
+    }
+    y -= 6;
+  }
+
+  // --- PROJECTS (制作実績) ---
+  if (data.projects?.length) {
+    drawSectionTitle("PROJECTS");
+    for (const p of data.projects) {
+      if (p.name) {
+        const nameText = p.name;
+        drawTextLine(nameText, { size: 10, font: fontBold });
+      }
+      if (p.description) {
+        const bullets = p.description.split("\n");
+        for (const bullet of bullets) {
+          if (!bullet.trim()) continue;
+          const clean = bullet.replace(/\*\*/g, "");
+          const lines = wrapText(clean, contentWidth - 15, 10, font);
+          lines.forEach((line, i) => {
+            checkPageBreak();
+            if (i === 0) {
+              page.drawCircle({ x: margin + 5, y: y + 3, size: 1.5 });
+              page.drawText(line, { x: margin + 15, y, size: 10, font });
+            } else {
+              page.drawText(line, { x: margin + 15, y, size: 10, font });
+            }
+            y -= 13;
+          });
+        }
+      }
+      y -= 5;
+    }
+    y -= 5;
+  }
+
+  // --- EXPERIENCE (職務経歴) ---
+  if (data.experience?.length) {
+    drawSectionTitle("EXPERIENCE");
+    for (const ex of data.experience) {
+      checkPageBreak(30);
+      if (ex.company) {
+        page.drawText(ex.company, { x: margin, y, size: 10, font: fontBold });
+        const dates = [ex.startDate, ex.endDate].filter(Boolean).join(" ~ ");
+        if (dates) drawRightAligned(dates, 10, font);
+        y -= 13;
+      }
+      const subLine = [ex.title, ex.location].filter(Boolean).join(", ");
+      if (subLine) drawTextLine(subLine, { size: 10, font: fontItalic });
+      if (ex.bullets) {
+        const bullets = ex.bullets.split("\n");
+        for (const bullet of bullets) {
+          if (!bullet.trim()) continue;
+          const clean = bullet.replace(/\*\*/g, "");
+          const lines = wrapText(clean, contentWidth - 15, 10, font);
+          lines.forEach((line, i) => {
+            checkPageBreak();
+            if (i === 0) {
+              page.drawCircle({ x: margin + 5, y: y + 3, size: 1.5 });
+              page.drawText(line, { x: margin + 15, y, size: 10, font });
+            } else {
+              page.drawText(line, { x: margin + 15, y, size: 10, font });
+            }
+            y -= 13;
+          });
+        }
+      }
+      y -= 6;
+    }
+  }
+
+  // --- EDUCATION (学歴) ---
+  if (data.education?.length) {
+    drawSectionTitle("EDUCATION");
+    for (const ed of data.education) {
+      checkPageBreak(30);
+      if (ed.degree) {
+        page.drawText(ed.degree, { x: margin, y, size: 10, font: fontBold });
+        if (ed.endDate) drawRightAligned(ed.endDate, 10, font);
+        y -= 13;
+      }
+      if (ed.school) drawTextLine(ed.school, { size: 10, font });
+      if (ed.location) drawTextLine(ed.location, { size: 10, font: fontItalic });
+      y -= 5;
+    }
+  }
+
+  return await pdfDoc.save();
+}
+
 app.post("/api/compile", async (req, res) => {
   try {
-    const { data } = req.body;
+    const { data, template } = req.body;
     if (!data) return res.status(400).json({ error: "Resume data is required" });
     if (!data.contact) return res.status(400).json({ error: "Invalid resume data" });
 
     console.log("Generating PDF using pdf-lib...");
-    const pdfBytes = await generatePdf(data);
+    const pdfBytes = await generatePdf(data, template);
 
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader("Content-Disposition", "attachment; filename=resume.pdf");
