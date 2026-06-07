@@ -46,8 +46,9 @@ export function buildLatex(data: ResumeData, cfg: LatexConfig): string {
   lines.push("\\usepackage[parfill]{parskip}");
   lines.push("\\usepackage{array}");
   lines.push("\\usepackage{ifthen}");
-  lines.push("\\usepackage{hyperref}");
+  lines.push("\\usepackage[hidelinks]{hyperref}");
   lines.push("\\usepackage[left=0.4in,top=0.3in,right=0.4in,bottom=0.3in]{geometry}");
+  lines.push("\\usepackage{fontawesome5}");
   lines.push("");
 
   // Page style
@@ -149,29 +150,55 @@ export function buildLatex(data: ResumeData, cfg: LatexConfig): string {
   // Name and addresses (BEFORE \begin{document})
   lines.push(`\\name{${escapeLatex(data.contact.fullName || "Your Name")}}`);
 
+  // First address block with phone and location
+  const firstAddressParts: string[] = [];
+  if (data.contact.phone) {
+    const phoneLink = cfg.asLinks.email && data.contact.phone
+      ? `\\href{http://wa.me/${data.contact.phone.replace(/[^0-9]/g, "")}}{${escapeLatex(data.contact.phone)}}`
+      : escapeLatex(data.contact.phone);
+    firstAddressParts.push(phoneLink);
+  }
   if (data.contact.location) {
-    lines.push(`\\address{${escapeLatex(data.contact.location)}}`);
+    firstAddressParts.push(`{${escapeLatex(data.contact.location)}}`);
+  }
+  if (firstAddressParts.length) {
+    lines.push("\\address{");
+    lines.push("    " + firstAddressParts.join(" \\\\"));
+    lines.push("}");
   }
 
-  const contactParts: string[] = [];
-  if (data.contact.phone) {
-    contactParts.push(escapeLatex(data.contact.phone));
+  // Second address block with website, email, linkedin
+  const secondAddressParts: string[] = [];
+  if (data.contact.website) {
+    const websiteLink = cfg.asLinks.website
+      ? `\\href{https://${escapeLatex(data.contact.website)}}{${escapeLatex(data.contact.website)}}`
+      : escapeLatex(data.contact.website);
+    secondAddressParts.push(websiteLink);
   }
   if (data.contact.email) {
-    contactParts.push(escapeLatex(data.contact.email));
+    const emailLink = cfg.asLinks.email
+      ? `\\href{mailto:${escapeLatex(data.contact.email)}}{${escapeLatex(data.contact.email)}}`
+      : escapeLatex(data.contact.email);
+    secondAddressParts.push(emailLink);
   }
-  if (contactParts.length) {
-    const sep = " \\\\";
-    lines.push("\\address{" + contactParts.join(sep) + "}");
+  if (data.contact.linkedin) {
+    const linkedinLink = cfg.asLinks.linkedin
+      ? `\\href{https://${escapeLatex(data.contact.linkedin)}}{${escapeLatex(data.contact.linkedin)}}`
+      : escapeLatex(data.contact.linkedin);
+    secondAddressParts.push(linkedinLink);
+  }
+  if (secondAddressParts.length) {
+    lines.push("\\address{");
+    lines.push("  " + secondAddressParts.join(" \\\\\n  "));
+    lines.push("}");
   }
 
-  lines.push("");
   lines.push("\\begin{document}");
   lines.push("");
 
-  // Summary Section (first)
+  // Summary Section (first) - empty section name
   if (data.contact.headline) {
-    lines.push("\\begin{rSection}{Summary}");
+    lines.push("\\begin{rSection}{}");
     lines.push("");
     lines.push(escapeLatex(data.contact.headline));
     lines.push("");
@@ -183,23 +210,29 @@ export function buildLatex(data: ResumeData, cfg: LatexConfig): string {
   if (data.projects?.length) {
     lines.push("\\begin{rSection}{Projects}");
     lines.push("");
+    lines.push("");
+    lines.push("");
 
     data.projects.forEach((p) => {
       const projectName = p.name ? escapeLatex(p.name) : "Project";
 
-      lines.push(`\\textbf{${projectName}}`);
       if (p.url) {
-        lines.push(` \\href{${escapeLatex(p.url)}}{${escapeLatex(p.url)}}`);
+        const url = p.url.startsWith('http') ? p.url : `https://${p.url}`;
+        lines.push(`\\href{${url}}{\\textbf{${projectName}}~\\faLink}`);
+      } else {
+        lines.push(`\\textbf{${projectName}}`);
       }
 
       const bullets = formatBullets(p.description);
       if (bullets) {
+        lines.push("");
         lines.push("\\begin{itemize}");
-        lines.push("\\itemsep -0.5em");
+        lines.push("\\itemsep -0.45em");
         lines.push(bullets);
         lines.push("\\end{itemize}");
       }
 
+      lines.push("");
       lines.push("");
     });
 
@@ -209,7 +242,7 @@ export function buildLatex(data: ResumeData, cfg: LatexConfig): string {
 
   // Skills Section (third)
   if (data.skills) {
-    lines.push("\\begin{rSection}{Skills and Interests}");
+    lines.push("\\begin{rSection}{Skills}");
     lines.push("");
     lines.push("\\begin{tabular}{ @{} >{\\bfseries}l @{\\hspace{6ex}} l }");
 
@@ -218,29 +251,15 @@ export function buildLatex(data: ResumeData, cfg: LatexConfig): string {
       .map((s) => s.trim())
       .filter(Boolean);
 
-    categories.forEach((cat, index) => {
+    categories.forEach((cat) => {
       const colonIndex = cat.indexOf(":");
       if (colonIndex > 0) {
         const category = cat.substring(0, colonIndex).trim();
         const skillList = cat.substring(colonIndex + 1).trim();
         const skills = skillList.split(",").map((s) => s.trim()).filter(Boolean);
-        const maxPerLine = 4;
 
-        // Format matches original template: ...skills4, \\& skills5\\
-        let lineParts: string[] = [];
-        const firstChunk = skills.slice(0, maxPerLine).join(", ");
-        lineParts.push(`${escapeLatex(category)} & ${escapeLatex(firstChunk)}`);
-
-        for (let j = maxPerLine; j < skills.length; j += maxPerLine) {
-          const chunk = skills.slice(j, j + maxPerLine).join(", ");
-          lineParts.push(` \\\\& ${escapeLatex(chunk)}`);
-        }
-
-        lines.push(lineParts.join(" ") + "\\\\");
-        // Blank line between categories (except last)
-        if (index < categories.length - 1) {
-          lines.push("");
-        }
+        lines.push(`${escapeLatex(category)} & ${escapeLatex(skills.join(", "))}\\\\`);
+        lines.push("");
       }
     });
 
@@ -250,45 +269,17 @@ export function buildLatex(data: ResumeData, cfg: LatexConfig): string {
     lines.push("");
   }
 
-  // Experience Section (fourth)
-  if (data.experience?.length) {
-    lines.push("\\begin{rSection}{Experience}");
-    lines.push("");
-
-    data.experience.forEach((ex) => {
-      const company = ex.company ? escapeLatex(ex.company) : "Company";
-      const dates = [ex.startDate, ex.endDate].filter(Boolean).join(" - ");
-      const title = ex.title || "Position";
-      const location = ex.location ? escapeLatex(ex.location) : "";
-
-      const titleWithLocation = location ? `${escapeLatex(title)}, ${escapeLatex(location)}` : escapeLatex(title);
-      lines.push(`\\begin{rSubsection}{${company}}{${escapeLatex(dates)}}{${titleWithLocation}}{}`);
-
-      const bullets = formatBullets(ex.bullets);
-      if (bullets) {
-        lines.push(bullets);
-      }
-
-      lines.push("\\end{rSubsection}");
-      lines.push("");
-    });
-
-    lines.push("\\end{rSection}");
-    lines.push("");
-  }
-
-  // Education Section (last)
+  // Education Section (before Experience)
   if (data.education?.length) {
     lines.push("\\begin{rSection}{Education}");
     lines.push("");
 
     data.education.forEach((ed) => {
       const degree = ed.degree ? `{\\bf ${escapeLatex(ed.degree)}}` : "";
-      const dates = [ed.startDate, ed.endDate].filter(Boolean).join(" - ");
-      const dateStr = dates ? `{${escapeLatex(dates)}}` : "";
+      const endDate = ed.endDate ? `{${escapeLatex(ed.endDate)}}` : "";
 
-      if (degree || dateStr) {
-        lines.push(`${degree} \\hfill ${dateStr} \\\\`);
+      if (degree || endDate) {
+        lines.push(`${degree} \\hfill ${endDate} \\\\`);
       }
 
       if (ed.school) {
@@ -300,6 +291,32 @@ export function buildLatex(data: ResumeData, cfg: LatexConfig): string {
         lines.push(escapeLatex(ed.location));
       }
 
+      lines.push("");
+    });
+
+    lines.push("\\end{rSection}");
+    lines.push("");
+  }
+
+  // Experience Section (last)
+  if (data.experience?.length) {
+    lines.push("\\begin{rSection}{Experience}");
+
+    data.experience.forEach((ex) => {
+      const company = ex.company ? escapeLatex(ex.company) : "Company";
+      const dates = [ex.startDate, ex.endDate].filter(Boolean).join(" - ");
+      const title = ex.title || "Position";
+      const location = ex.location ? escapeLatex(ex.location) : "";
+
+      const titleWithLocation = location ? `${escapeLatex(title)}, ${location}` : escapeLatex(title);
+      lines.push(`\\begin{rSubsection}{${company}}{${escapeLatex(dates)}}{${titleWithLocation}}{}`);
+
+      const bullets = formatBullets(ex.bullets);
+      if (bullets) {
+        lines.push(bullets);
+      }
+
+      lines.push("\\end{rSubsection}");
       lines.push("");
     });
 

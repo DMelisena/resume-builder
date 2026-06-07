@@ -35,6 +35,7 @@ export default function Home() {
   }, [pdfUrl]);
 
   async function handleCompile() {
+    console.log("User clicked Compile");
     await compile();
   }
 

@@ -46,6 +46,7 @@ export default function PreviewPanel({ data }: Props) {
   async function generatePreview() {
     if (!data) return;
 
+    console.log("Generating preview...", data);
     setIsLoading(true);
     setError(null);
 
@@ -58,31 +59,31 @@ export default function PreviewPanel({ data }: Props) {
     try {
       const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "";
 
-      // Import buildLatex dynamically
-      const { buildLatex } = await import("../utils/latex");
-
-      // Generate LaTeX code
-      const latexCode = buildLatex(data, { asLinks: { email: false, website: false, linkedin: false } });
-
-      // Compile to PDF
+      console.log("Sending data to backend:", `${BACKEND_URL}/api/compile`);
+      // Compile to PDF using pdf-lib backend
       const response = await fetch(`${BACKEND_URL}/api/compile`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ code: latexCode }),
+        body: JSON.stringify({ data }),
       });
+
+      console.log("Response status:", response.status);
 
       if (!response.ok) {
         const errorText = await response.text();
+        console.error("Backend error:", errorText);
         throw new Error(`Compilation failed: ${errorText}`);
       }
 
       const blob = await response.blob();
+      console.log("Blob received, size:", blob.size);
       const url = URL.createObjectURL(blob);
       setPdfUrl(url);
     } catch (err) {
       const message = err instanceof Error ? err.message : "Unknown error";
+      console.error("Preview generation error:", err);
       setError(message);
       toast({
         title: "Preview generation failed",
