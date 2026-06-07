@@ -2,6 +2,7 @@ import {
   Box,
   FormControl,
   FormLabel,
+  Select,
   Slider,
   SliderTrack,
   SliderFilledTrack,
@@ -12,7 +13,7 @@ import {
   Heading,
 } from "@chakra-ui/react";
 import { useTranslation } from "react-i18next";
-import type { PdfConfig } from "../types";
+import type { PdfConfig, TemplateType } from "../types";
 
 type Props = {
   config: PdfConfig;
@@ -34,6 +35,19 @@ export default function PdfConfigPanel({ config, onChange }: Props) {
       <Heading as="h3" size="md" mb={3}>
         {t("pdfConfig")}
       </Heading>
+
+      <FormControl mb={4}>
+        <FormLabel>{t("template")}</FormLabel>
+        <Select
+          value={config.template}
+          onChange={(e) =>
+            onChange({ ...config, template: e.target.value as TemplateType })
+          }
+        >
+          <option value="english">{t("templateEnglish")}</option>
+          <option value="jp-portfolio">{t("templateJpPortfolio")}</option>
+        </Select>
+      </FormControl>
 
       <FormControl mb={4}>
         <FormLabel>
