@@ -74,6 +74,7 @@ const defaultResume = {
 
 const defaultPdfConfig: PdfConfig = {
   fontSize: 10.5,
+  template: "english",
   asLinks: {
     email: true,
     linkedin: true,
@@ -82,6 +83,7 @@ const defaultPdfConfig: PdfConfig = {
 };
 
 const defaultLatexConfig: LatexConfig = {
+  template: "english",
   asLinks: {
     email: true,
     linkedin: true,
