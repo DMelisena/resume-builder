@@ -15,7 +15,7 @@ export async function generatePdf(data: ResumeData | null, cfg: PdfConfig) {
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ data }),
+    body: JSON.stringify({ data, template: cfg.template }),
   });
 
   if (!response.ok) {
