@@ -42,6 +42,7 @@ export type ResumeData = {
 
 export type PdfConfig = {
   fontSize: number; // 9..12 typical
+  template: TemplateType;
   asLinks: {
     email: boolean;
     linkedin: boolean;
@@ -50,11 +51,14 @@ export type PdfConfig = {
 };
 
 export type LatexConfig = {
+  template: TemplateType;
   asLinks: {
     email: boolean;
     linkedin: boolean;
     website: boolean;
   };
 };
+
+export type TemplateType = "english" | "jp-portfolio";
 
 export type ExportFormat = "pdf" | "latex";
