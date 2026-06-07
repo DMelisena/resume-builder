@@ -1,0 +1,200 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Welcome to Overleaf --- just edit your LaTeX on the left,
+% and we'll compile it for you on the right. If you open the
+% 'Share' menu, you can invite other users to edit at the same
+% time. See www.overleaf.com/learn for more info. Enjoy!
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\documentclass[11pt,letterpaper]{article}
+
+\usepackage[parfill]{parskip}
+\usepackage{array}
+\usepackage{ifthen}
+\usepackage[hidelinks]{hyperref}
+\usepackage[left=0.4in,top=0.3in,right=0.4in,bottom=0.3in]{geometry}
+\usepackage{fontawesome5}
+
+\pagestyle{empty}
+
+\makeatletter
+
+\def\name#1{\def\@name{#1}}
+\def\@name{}
+
+\def\addressSep{$\diamond$}
+
+\let\@addressone\relax
+\let\@addresstwo\relax
+\let\@addressthree\relax
+
+\def\address#1{%
+  \@ifundefined{@addresstwo}{%
+    \def\@addresstwo{#1}%
+  }{%
+    \@ifundefined{@addressthree}{%
+      \def\@addressthree{#1}%
+    }{%
+      \def\@addressone{#1}%
+    }%
+  }%
+}
+
+\def\printaddress#1{%
+  \begingroup
+    \def\\{\addressSep\ }
+    \centerline{#1}
+  \endgroup
+  \par
+  \addressskip
+}
+
+\def\printname{%
+  \begingroup
+    \hfil{\MakeUppercase{\namesize\bf\@name}}\hfil
+    \nameskip\break
+  \endgroup
+}
+
+\let\ori@document=\document
+\renewcommand{\document}{%
+  \ori@document
+  \printname
+  \@ifundefined{@addressone}{}{\printaddress{\@addressone}}
+  \@ifundefined{@addresstwo}{}{\printaddress{\@addresstwo}}
+  \@ifundefined{@addressthree}{}{\printaddress{\@addressthree}}
+}
+
+\newenvironment{rSection}[1]{%
+  \sectionskip
+  \MakeUppercase{\bf#1}
+  \sectionlineskip
+  \hrule
+  \begin{list}{}{\setlength{\leftmargin}{1.5em}}
+  \item[]
+}{%
+  \end{list}
+}
+
+\newenvironment{rSubsection}[4]{%
+  {\bf#1}\hfill{#2}
+  \ifthenelse{\equal{#3}{}}{}{\\{\em#3}\hfill{\em#4}}
+  \smallskip
+  \begin{list}{$\cdot$}{\leftmargin=0em}
+    \itemsep-0.5em \vspace{-0.5em}
+  }{%
+  \end{list}
+  \vspace{0.5em}
+}
+
+\def\namesize{\huge}
+\def\addressskip{\smallskip}
+\def\sectionlineskip{\medskip}
+\def\nameskip{\bigskip}
+\def\sectionskip{\medskip}
+
+\makeatother
+
+\name{Muhammad Arya Hanif}
+\address{
+    \href{http://wa.me/6285173342248}{+6285173342248} \\
+    {Yogyakarta, Indonesia}
+}
+\address{
+  \href{https://portfolio.aryahanif.xyz}{portfolio.aryahanif.xyz} \\
+  \href{mailto:aryasenaria@gmail.com}{aryasenaria@gmail.com} \\
+  \href{https://linkedin.com/in/arya-hanif/}{linkedin.com/in/arya-hanif/}
+}
+\begin{document}
+
+\begin{rSection}{}
+
+Engineer with a background in scientific computing and hands-on experience building end-to-end systems, from iOS and macOS applications to backend services and ML pipelines. Passionate about applying engineering and machine learning to real-world, data-driven problems.
+
+\end{rSection}
+
+\begin{rSection}{Projects}
+
+
+
+\href{https://testflight.apple.com/join/Gq3z5Pus}{\textbf{Sealens}~\faLink}
+
+\begin{itemize}
+\itemsep -0.45em
+\item \textbf{1st place winner} of the \textbf{EU-Conexus Innovation Contest 2025}, organized by biomarine technology programs affiliated with \textbf{Erasmus}.
+\item Architected and implemented an end-to-end ML system spanning \textbf{dataset creation}, \textbf{video preprocessing}, \textbf{object detection}, \textbf{feature extraction}, \textbf{clustering}, \textbf{classification}, and \textbf{re-identification} and \textbf{object tracking} accessed through \textbf{REST API}s \textbf{microservices}.
+\item Developed and benchmarked multiple computer vision models (\textbf{YOLOv11/v12)}, \textbf{ResNet}, \textbf{Vision Transformers}, \textbf{Siamese networks} and custom CNNs to support rapid experimentation and iteration.
+\item Built automated \textbf{clustering} using \textbf{DBSCAN}, \textbf{KMeans}, and \textbf{PCA} for large-scale visual analysis.
+\item Designed a modular MLOps framework using \textbf{DVC} to version-control \textbf{60k+ images}, raw videos, embeddings, and experiment artifacts, enabling reproducible training and evaluation.
+\item Built a reliable video ingestion pipeline with resumable, chunked uploads (\textbf{TUS}), integrity verification, and automated frame extraction using \textbf{FFmpeg}.
+\item Deployed and operated backend services using \textbf{Flask} secured via \textbf{Cloudflare Tunnel} (production) and \textbf{Ngrok} deployed in \textbf{Railway},  (development).
+\end{itemize}
+
+
+\href{https://portfolio.aryahanif.xyz/linac_dose}{\textbf{Particle Transportation Simulation}~\faLink}
+\begin{itemize}
+\itemsep -0.5em
+\item Developed radiation dose distribution heatmap visualizations to correct misunderstandings in radiotherapy bunker shielding design using \textbf{Monte Carlo particle transportation simulation}.
+\item Established a \textbf{Linux}-based simulation server accessed via an \textbf{SSH} tunnel, secured through \textbf{VPN} access to the university network.
+\item Evaluate the simulation results by doing comparison using \textbf{analytical calculations }and \textbf{real} radiation \textbf{dose measurement} of radiotherapy bunker in \textbf{Hasan Sadikin Public Hospital}.
+\end{itemize}
+\href{https://resume.aryahanif.xyz}{\textbf{Resume Builder}~\faLink}
+\begin{itemize}
+\itemsep -0.5em
+
+\item Implemented custom \textbf{LaTeX-to-PDF} resume maker with \textbf{ATS-friendly} document output using \textbf{React 18} and \textbf{TypeScript}, serving users with split-screen real-time editing and PDF preview
+\item Engineered \textbf{Express.js} backend with \textbf{RESTful API} proxy for secure LaTeX compilation, including CORS configuration and production deployment on \textbf{Vercel}
+\end{itemize}
+
+\href{https://portfolio.aryahanif.xyz}{\textbf{Odin Projects}~\faLink}
+\begin{itemize}
+\itemsep -0.5em
+\item Created \textbf{vanilla html} and \textbf{css} projects to deepen understand the fundamental styling layer behind web framework.
+\item created different projects spanning from Etch a Sketch, Tic Tac Toe, Library, and Admin Dashboard Layout.
+
+\end{itemize}
+\end{rSection}
+
+\begin{rSection}{Skills}
+
+\begin{tabular}{ @{} >{\bfseries}l @{\hspace{6ex}} l }
+Programming & Python, Swift, SwiftUI, Git, Shell\\
+
+DataScience & PyTorch, OpenCV, NumPy, Pandas,  Scikit-Learn, SciPy\\
+
+Ops & Linux, Docker, Railway, Flask, vercel, npm, pip ngrok, cloudflare\\
+
+Web & ChakraUI,
+\end{tabular}
+
+\end{rSection}
+
+\begin{rSection}{Education}
+
+{\bf Nuclear Engineering} \hfill {Jul 2024} \\
+Universitas Gadjah Mada
+\\
+Yogyakarta, Indonesia
+
+{\bf iOS Developer} \hfill {Dec 2025} \\
+Apple Developer Academy @Binus Bali
+\\
+Bali, Indonesia
+
+\end{rSection}
+
+\begin{rSection}{Experience}
+\begin{rSubsection}{Dr. Hasan Sadikin Public Hospital}{Dec 2022 - Feb 2023}{Medical Physics Intern, Bandung, Indonesia}{}
+\item Executed supervised  patient-specific treatment planning for \textbf{linear accelerator} and \textbf{teletherapy} for \textbf{cancer patients}.
+\item Performed \textbf{Quality Assurance} \& \textbf{Quality Control} for \textbf{radiodiagnostic}, \textbf{radiotherapy} and \textbf{nuclear medicine} departments.
+\end{rSubsection}
+
+\begin{rSubsection}{Electronics and Instrumentation Lab}{Jan 2021 - Jun 2021}{Teaching \& Lab Assistant, Yogyakarta, Indonesia}{}
+\item \textbf{Initiated curriculum update} for lab learning modules and pre-/post-test assessments for post covid classes.
+\item Monitored assessments and grading procedures for \textbf{100+ students} across department.
+\item Assisted students with instrumentation tools, sensors, measurement devices, and troubleshooting during practical sessions.
+\end{rSubsection}
+
+\end{rSection}
+
+\end{document}
