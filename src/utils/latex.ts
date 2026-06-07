@@ -36,6 +36,14 @@ function formatBullets(text?: string): string {
  * All resume.cls definitions are embedded in the preamble - no separate .cls file needed
  */
 export function buildLatex(data: ResumeData, cfg: LatexConfig): string {
+  if (cfg.template === "jp-portfolio") {
+    return buildJapanesePortfolioLatex(data, cfg);
+  }
+  return buildEnglishLatex(data, cfg);
+}
+
+/** English CV (existing) */
+function buildEnglishLatex(data: ResumeData, cfg: LatexConfig): string {
   const lines: string[] = [];
 
   // Standard document class
@@ -349,4 +357,194 @@ export function downloadLatex(latexCode: string, filename: string) {
  */
 export function sanitizeFilename(name: string): string {
   return name.replace(/[^a-z0-9\u00C0-\u024F\s._-]+/gi, "_").trim() || "resume";
+}
+
+/**
+ * Japanese portfolio template (職務経歴書 style, engineer-focused)
+ * Tailored for fastoffer.co.jp engineer applications:
+ *   - skills-first layout (technical stack up top)
+ *   - projects with role + period + tech stack
+ *   - education with 西暦 format
+ *   - uses ltjsarticle + luatexja for clean Japanese rendering on Overleaf
+ *
+ * Note: Compile with LuaLaTeX on Overleaf. Do NOT escape Japanese characters.
+ */
+function buildJapanesePortfolioLatex(data: ResumeData, cfg: LatexConfig): string {
+  const lines: string[] = [];
+
+  lines.push("% !TEX program = lualatex");
+  lines.push("\\documentclass[11pt,a4paper]{ltjsarticle}");
+  lines.push("");
+  lines.push("\\usepackage{luatexja-fontspec}");
+  lines.push("\\usepackage[hidelinks]{hyperref}");
+  lines.push("\\usepackage[left=20mm,top=18mm,right=20mm,bottom=18mm]{geometry}");
+  lines.push("\\usepackage{array}");
+  lines.push("\\usepackage{enumitem}");
+  lines.push("\\usepackage{titlesec}");
+  lines.push("\\usepackage{fontawesome5}");
+  lines.push("");
+  lines.push("\\setlist{nosep,leftmargin=1.2em}");
+  lines.push("");
+  lines.push("% Section: bold Japanese heading with full-width underline");
+  lines.push("\\titleformat{\\section}{\\large\\bfseries}{}{0pt}{}[\\vspace{-0.4em}\\hrule]");
+  lines.push("\\titlespacing*{\\section}{0pt}{1.1em}{0.5em}");
+  lines.push("");
+  lines.push("\\pagestyle{empty}");
+  lines.push("");
+  lines.push("\\begin{document}");
+  lines.push("");
+
+  // ===== Header: name + date (right) =====
+  const fullName = data.contact.fullName || "氏名";
+  lines.push("\\begin{flushright}");
+  lines.push("\\small 作成日: \\today");
+  lines.push("\\end{flushright}");
+  lines.push("");
+  lines.push("\\begin{center}");
+  lines.push(`{\\LARGE\\bfseries 職務経歴書}\\\\[0.4em]`);
+  lines.push(`{\\large ${escapeLatex(fullName)}}`);
+  lines.push("\\end{center}");
+  lines.push("");
+
+  // ===== Contact (連絡先) =====
+  lines.push("\\section*{■ 連絡先}");
+  lines.push("\\begin{tabular}{@{}p{3.2cm}p{12cm}@{}}");
+  if (data.contact.location) {
+    lines.push(`所在地 & ${escapeLatex(data.contact.location)} \\\\`);
+  }
+  if (data.contact.phone) {
+    lines.push(`電話番号 & ${escapeLatex(data.contact.phone)} \\\\`);
+  }
+  if (data.contact.email) {
+    const emailLink = cfg.asLinks.email
+      ? `\\href{mailto:${data.contact.email}}{${escapeLatex(data.contact.email)}}`
+      : escapeLatex(data.contact.email);
+    lines.push(`メール & ${emailLink} \\\\`);
+  }
+  if (data.contact.website) {
+    const url = data.contact.website.startsWith("http")
+      ? data.contact.website
+      : `https://${data.contact.website}`;
+    const link = cfg.asLinks.website
+      ? `\\href{${url}}{${escapeLatex(data.contact.website)}}`
+      : escapeLatex(data.contact.website);
+    lines.push(`ポートフォリオ & ${link} \\\\`);
+  }
+  if (data.contact.linkedin) {
+    const url = data.contact.linkedin.startsWith("http")
+      ? data.contact.linkedin
+      : `https://${data.contact.linkedin}`;
+    const link = cfg.asLinks.linkedin
+      ? `\\href{${url}}{${escapeLatex(data.contact.linkedin)}}`
+      : escapeLatex(data.contact.linkedin);
+    lines.push(`LinkedIn & ${link} \\\\`);
+  }
+  lines.push("\\end{tabular}");
+  lines.push("");
+
+  // ===== Summary (自己PR / 職務要約) =====
+  if (data.contact.headline) {
+    lines.push("\\section*{■ 職務要約 / 自己PR}");
+    lines.push(escapeLatex(data.contact.headline));
+    lines.push("");
+  }
+
+  // ===== Skills (技術スキル) — first, engineer-priority =====
+  if (data.skills) {
+    lines.push("\\section*{■ 技術スキル (Technical Skills)}");
+    lines.push("\\begin{tabular}{@{}>{\\bfseries}p{3.5cm}p{12cm}@{}}");
+    const categories = data.skills.split("|").map((s) => s.trim()).filter(Boolean);
+    categories.forEach((cat) => {
+      const idx = cat.indexOf(":");
+      if (idx > 0) {
+        const category = cat.substring(0, idx).trim();
+        const list = cat.substring(idx + 1).trim();
+        lines.push(`${escapeLatex(category)} & ${escapeLatex(list)} \\\\`);
+      }
+    });
+    lines.push("\\end{tabular}");
+    lines.push("");
+  }
+
+  // ===== Projects (制作実績 / プロジェクト) =====
+  if (data.projects?.length) {
+    lines.push("\\section*{■ プロジェクト / 制作実績}");
+    data.projects.forEach((p) => {
+      const name = p.name ? escapeLatex(p.name) : "プロジェクト";
+      if (p.url) {
+        const url = p.url.startsWith("http") ? p.url : `https://${p.url}`;
+        lines.push(`\\textbf{${name}}~\\href{${url}}{\\faLink}`);
+      } else {
+        lines.push(`\\textbf{${name}}`);
+      }
+      lines.push("\\vspace{0.2em}");
+
+      const bullets = (p.description || "")
+        .split(/\r?\n/)
+        .map((s) => s.trim())
+        .filter(Boolean);
+      if (bullets.length) {
+        lines.push("\\begin{itemize}");
+        bullets.forEach((b) => lines.push(`\\item ${escapeLatex(b)}`));
+        lines.push("\\end{itemize}");
+      }
+      lines.push("\\vspace{0.4em}");
+      lines.push("");
+    });
+  }
+
+  // ===== Experience (職務経歴) =====
+  if (data.experience?.length) {
+    lines.push("\\section*{■ 職務経歴 (Work Experience)}");
+    data.experience.forEach((ex) => {
+      const company = ex.company ? escapeLatex(ex.company) : "会社名";
+      const dates = [ex.startDate, ex.endDate].filter(Boolean).join(" 〜 ");
+      const title = ex.title ? escapeLatex(ex.title) : "";
+      const loc = ex.location ? escapeLatex(ex.location) : "";
+
+      lines.push(`\\noindent\\textbf{${company}} \\hfill ${escapeLatex(dates)}\\\\`);
+      const subParts = [title, loc].filter(Boolean).join(" / ");
+      if (subParts) {
+        lines.push(`\\textit{${subParts}}`);
+      }
+      lines.push("\\vspace{0.2em}");
+
+      const bullets = (ex.bullets || "")
+        .split(/\r?\n/)
+        .map((s) => s.trim())
+        .filter(Boolean);
+      if (bullets.length) {
+        lines.push("\\begin{itemize}");
+        bullets.forEach((b) => lines.push(`\\item ${escapeLatex(b)}`));
+        lines.push("\\end{itemize}");
+      }
+      lines.push("\\vspace{0.4em}");
+      lines.push("");
+    });
+  }
+
+  // ===== Education (学歴) =====
+  if (data.education?.length) {
+    lines.push("\\section*{■ 学歴 (Education)}");
+    lines.push("\\begin{tabular}{@{}p{2.8cm}p{13cm}@{}}");
+    data.education.forEach((ed) => {
+      const date = ed.endDate ? escapeLatex(ed.endDate) : "";
+      const school = ed.school ? escapeLatex(ed.school) : "";
+      const degree = ed.degree ? escapeLatex(ed.degree) : "";
+      const loc = ed.location ? escapeLatex(ed.location) : "";
+      const right = [school, degree, loc].filter(Boolean).join(" — ");
+      lines.push(`${date} & ${right} \\\\`);
+    });
+    lines.push("\\end{tabular}");
+    lines.push("");
+  }
+
+  lines.push("\\vfill");
+  lines.push("\\begin{flushright}");
+  lines.push("\\small 以上");
+  lines.push("\\end{flushright}");
+  lines.push("");
+  lines.push("\\end{document}");
+
+  return lines.join("\n");
 }
