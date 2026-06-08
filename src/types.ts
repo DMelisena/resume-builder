@@ -59,6 +59,6 @@ export type LatexConfig = {
   };
 };
 
-export type TemplateType = "english" | "jp-portfolio";
+export type TemplateType = "english" | "jp-portfolio" | "jp-cv";
 
 export type ExportFormat = "pdf" | "latex";
