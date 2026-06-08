@@ -18,6 +18,34 @@ function escapeLatex(str: string): string {
 }
 
 /**
+ * Convert markdown-style inline formatting to LaTeX commands.
+ * MUST run AFTER escapeLatex so that the markdown markers (`*`, `_`) are still
+ * intact (escapeLatex doesn't touch `*`, and we strip `_` escaping inside
+ * matched runs). Handles `**bold**`, `*italic*`, and `` `code` `` -> \texttt.
+ *
+ * Order matters: `**` before `*` so the doubled marker wins.
+ */
+function processInlineMarkdown(escaped: string): string {
+  return escaped
+    // `**text**` -> \textbf{text}  (text already LaTeX-escaped)
+    .replace(/\*\*([^*\n]+?)\*\*/g, "\\textbf{$1}")
+    // `*text*` -> \textit{text}  (single asterisk)
+    .replace(/(^|[^\\*])\*([^*\n]+?)\*(?!\*)/g, "$1\\textit{$2}")
+    // `_text_` -> \textit{text}  (underscore was escaped to \_, so look for \_text\_)
+    .replace(/\\_([^\\\n]+?)\\_/g, "\\textit{$1}")
+    // `` `text` `` -> \texttt{text}
+    .replace(/`([^`\n]+?)`/g, "\\texttt{$1}");
+}
+
+/**
+ * Escape LaTeX special chars, then process inline markdown formatting.
+ * Use this everywhere user-supplied prose lands in the document.
+ */
+function escapeAndFormat(str: string): string {
+  return processInlineMarkdown(escapeLatex(str));
+}
+
+/**
  * Convert markdown-style bullets to LaTeX items
  * Note: rSubsection already provides a list environment, so we just return \item commands
  */
@@ -28,7 +56,7 @@ function formatBullets(text?: string): string {
     .map((s) => s.trim())
     .filter(Boolean);
   if (!items.length) return "";
-  return items.map((item) => `\\item ${escapeLatex(item)}`).join("\n");
+  return items.map((item) => `\\item ${escapeAndFormat(item)}`).join("\n");
 }
 
 /**
@@ -488,7 +516,7 @@ function buildJapanesePortfolioLatex(data: ResumeData, cfg: LatexConfig): string
         .filter(Boolean);
       if (bullets.length) {
         lines.push("\\begin{itemize}");
-        bullets.forEach((b) => lines.push(`\\item ${escapeLatex(b)}`));
+        bullets.forEach((b) => lines.push(`\\item ${escapeAndFormat(b)}`));
         lines.push("\\end{itemize}");
       }
       lines.push("\\vspace{0.4em}");
@@ -518,7 +546,7 @@ function buildJapanesePortfolioLatex(data: ResumeData, cfg: LatexConfig): string
         .filter(Boolean);
       if (bullets.length) {
         lines.push("\\begin{itemize}");
-        bullets.forEach((b) => lines.push(`\\item ${escapeLatex(b)}`));
+        bullets.forEach((b) => lines.push(`\\item ${escapeAndFormat(b)}`));
         lines.push("\\end{itemize}");
       }
       lines.push("\\vspace{0.4em}");
@@ -681,8 +709,7 @@ function buildJapaneseCVLatex(data: ResumeData, cfg: LatexConfig): string {
       if (ex.bullets) {
         const bullets = ex.bullets.split(/\r?\n/).map((s) => s.trim()).filter(Boolean);
         bullets.forEach((b) => {
-          const clean = b.replace(/\*\*/g, "");
-          lines.push(` & & \\small{${escapeLatex(clean)}} \\\\`);
+          lines.push(` & & \\small{${escapeAndFormat(b)}} \\\\`);
         });
       }
       lines.push("\\hline");
@@ -728,7 +755,7 @@ function buildJapaneseCVLatex(data: ResumeData, cfg: LatexConfig): string {
         const bullets = p.description.split(/\r?\n/).map((s) => s.trim()).filter(Boolean);
         if (bullets.length) {
           lines.push("\\begin{itemize}");
-          bullets.forEach((b) => lines.push(`\\item ${escapeLatex(b)}`));
+          bullets.forEach((b) => lines.push(`\\item ${escapeAndFormat(b)}`));
           lines.push("\\end{itemize}");
         }
       }
