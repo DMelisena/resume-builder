@@ -46,6 +46,7 @@ export default function PdfConfigPanel({ config, onChange }: Props) {
         >
           <option value="english">{t("templateEnglish")}</option>
           <option value="jp-portfolio">{t("templateJpPortfolio")}</option>
+          <option value="jp-cv">{t("templateJpCv")}</option>
         </Select>
       </FormControl>
 
