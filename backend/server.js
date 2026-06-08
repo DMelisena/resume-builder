@@ -20,6 +20,9 @@ async function generatePdf(data, template = "english") {
   if (template === "jp-portfolio") {
     return generateJpPdf(data);
   }
+  if (template === "jp-cv") {
+    return generateJpCvPdf(data);
+  }
   return generateEnglishPdf(data);
 }
 
@@ -512,6 +515,242 @@ async function generateJpPdf(data) {
       if (ed.location) drawTextLine(ed.location, { size: 10, font: fontItalic });
       y -= 5;
     }
+  }
+
+  return await pdfDoc.save();
+}
+
+/**
+ * 履歴書 (Rirekisho) layout — formal Japanese CV.
+ * A4, grid-style with combined Education+Experience chronological table.
+ *
+ * NOTE: pdf-lib StandardFonts lack CJK glyphs. Labels use English + romaji.
+ * For proper Japanese character rendering, use the LaTeX → Overleaf path.
+ */
+async function generateJpCvPdf(data) {
+  const pdfDoc = await PDFDocument.create();
+  let page = pdfDoc.addPage([595, 842]); // A4
+  const font = await pdfDoc.embedFont(StandardFonts.TimesRoman);
+  const fontBold = await pdfDoc.embedFont(StandardFonts.TimesRomanBold);
+  const fontItalic = await pdfDoc.embedFont(StandardFonts.TimesRomanItalic);
+
+  const { width, height } = page.getSize();
+  let y = height - 45;
+  const margin = 45;
+  const contentWidth = width - margin * 2;
+
+  const checkPageBreak = (neededSpace = 12) => {
+    if (y < margin + neededSpace) {
+      page = pdfDoc.addPage([595, 842]);
+      y = height - 45;
+    }
+  };
+
+  const drawText = (text, options = {}) => {
+    checkPageBreak();
+    page.drawText(text, {
+      x: options.x || margin, y,
+      size: options.size || 10,
+      font: options.font || font,
+      color: options.color || rgb(0, 0, 0),
+    });
+  };
+
+  const drawTextLine = (text, options = {}) => {
+    drawText(text, options);
+    if (options.moveDown !== false) y -= 13;
+  };
+
+  const drawCentered = (text, size, fontToUse) => {
+    const tw = fontToUse.widthOfTextAtSize(text, size);
+    drawText(text, { x: (width - tw) / 2, size, font: fontToUse });
+  };
+
+  const drawRightAligned = (text, size, fontToUse) => {
+    const tw = fontToUse.widthOfTextAtSize(text, size);
+    page.drawText(text, { x: width - margin - tw, y, size, font: fontToUse });
+  };
+
+  const wrapText = (text, maxWidth, size, fontToUse) => {
+    const words = text.split(" ");
+    const lines = [];
+    let cur = words[0] || "";
+    for (let i = 1; i < words.length; i++) {
+      const w = fontToUse.widthOfTextAtSize(`${cur} ${words[i]}`, size);
+      if (w < maxWidth) cur += ` ${words[i]}`;
+      else { lines.push(cur); cur = words[i]; }
+    }
+    lines.push(cur);
+    return lines;
+  };
+
+  // --- TITLE (Rirekisho header) ---
+  const jpDate = new Date().toLocaleDateString("ja-JP", { year: "numeric", month: "short", day: "numeric" });
+  drawRightAligned(`${jpDate}`, 8, font);
+  y -= 10;
+
+  drawCentered("RIREKISHO", 16, fontBold);
+  y -= 18;
+
+  if (data.contact.fullName) {
+    drawCentered(data.contact.fullName.toUpperCase(), 14, fontBold);
+    y -= 20;
+  }
+
+  // horizontal rule
+  checkPageBreak();
+  page.drawLine({
+    start: { x: margin, y: y },
+    end: { x: width - margin, y: y },
+    thickness: 0.8, color: rgb(0.1, 0.1, 0.1),
+  });
+  y -= 14;
+
+  // --- PERSONAL INFO TABLE (基本情報) ---
+  const tblLabelX = margin;
+  const tblValueX = margin + 80;
+  const tblRowH = 16;
+
+  const drawTableRow = (label, value) => {
+    checkPageBreak(tblRowH + 4);
+    page.drawText(label, { x: tblLabelX, y, size: 10, font: fontBold });
+    page.drawText(value || "", { x: tblValueX, y, size: 10, font });
+    // line separator
+    page.drawLine({
+      start: { x: margin, y: y - 4 },
+      end: { x: width - margin, y: y - 4 },
+      thickness: 0.4, color: rgb(0.7, 0.7, 0.7),
+    });
+    y -= tblRowH;
+  };
+
+  drawTableRow("Name (氏名)", data.contact.fullName);
+  if (data.contact.location) drawTableRow("Address (現住所)", data.contact.location);
+  if (data.contact.phone) drawTableRow("Tel (電話番号)", data.contact.phone);
+  if (data.contact.email) drawTableRow("Email (メール)", data.contact.email);
+  if (data.contact.website) drawTableRow("Portfolio", data.contact.website);
+  if (data.contact.linkedin) drawTableRow("LinkedIn", data.contact.linkedin);
+  y -= 10;
+
+  // --- EDUCATION + EXPERIENCE TABLE (学歴・職歴) ---
+  const sectionTitle = (title) => {
+    checkPageBreak(32);
+    y -= 6;
+    page.drawText(title, { x: margin, y, size: 12, font: fontBold });
+    y -= 3;
+    page.drawLine({
+      start: { x: margin, y: y },
+      end: { x: width - margin, y: y },
+      thickness: 0.8, color: rgb(0.1, 0.1, 0.1),
+    });
+    y -= 12;
+  };
+
+  sectionTitle("Gakureki / Shokureki (学歴・職歴)");
+
+  // combined chronological: education first (oldest→newest), then experience (oldest→newest)
+  const chronoEntries = [];
+
+  if (data.education?.length) {
+    chronoEntries.push({ type: "label", text: "--- EDUCATION (学歴) ---" });
+    const sortedEd = [...data.education].sort((a, b) =>
+      (a.endDate || "").localeCompare(b.endDate || "")
+    );
+    for (const ed of sortedEd) {
+      const line = [ed.endDate, ed.school, ed.degree].filter(Boolean).join(" | ");
+      chronoEntries.push({ type: "ed", text: line, bullets: null });
+    }
+  }
+
+  if (data.experience?.length) {
+    chronoEntries.push({ type: "label", text: "--- EXPERIENCE (職歴) ---" });
+    const sortedEx = [...data.experience].sort((a, b) =>
+      (a.startDate || "").localeCompare(b.startDate || "")
+    );
+    for (const ex of sortedEx) {
+      const date = [ex.startDate, ex.endDate].filter(Boolean).join(" ~ ");
+      const line = [date, ex.company, ex.title].filter(Boolean).join(" | ");
+      chronoEntries.push({ type: "ex", text: line, bullets: ex.bullets });
+    }
+  }
+
+  for (const entry of chronoEntries) {
+    checkPageBreak(14);
+    if (entry.type === "label") {
+      drawTextLine(entry.text, { font: fontItalic, size: 9 });
+      y -= 2;
+    } else {
+      drawTextLine(entry.text, { size: 10, font: fontBold });
+      if (entry.bullets) {
+        const bullets = entry.bullets.split("\n").map(s => s.replace(/\*\*/g, "").trim()).filter(Boolean);
+        for (const b of bullets) {
+          const lines = wrapText(b, contentWidth - 15, 9, font);
+          lines.forEach((line, i) => {
+            checkPageBreak();
+            if (i === 0) {
+              page.drawCircle({ x: margin + 5, y: y + 3, size: 1.3 });
+              page.drawText(line, { x: margin + 15, y, size: 9, font });
+            } else {
+              page.drawText(line, { x: margin + 15, y, size: 9, font });
+            }
+            y -= 12;
+          });
+        }
+      }
+      y -= 3;
+    }
+  }
+  y -= 8;
+
+  // --- SKILLS (免許・資格 / 技術スキル) ---
+  if (data.skills) {
+    sectionTitle("Menkyo / Shikaku / Gijutsu Skill (免許・資格 / 技術スキル)");
+    const categories = data.skills.split("|").map(s => s.trim()).filter(Boolean);
+    for (const cat of categories) {
+      const idx = cat.indexOf(":");
+      if (idx > 0) {
+        const category = cat.substring(0, idx).trim();
+        const items = cat.substring(idx + 1).trim();
+        checkPageBreak();
+        drawTextLine(`${category}:`, { font: fontBold, size: 10, moveDown: false });
+        page.drawText(items, { x: margin + fontBold.widthOfTextAtSize(`${category}:`, 10) + 8, y, size: 10, font });
+        y -= 13;
+      }
+    }
+    y -= 6;
+  }
+
+  // --- PROJECTS (研究・制作実績) ---
+  if (data.projects?.length) {
+    sectionTitle("Kenkyu / Seisaku Jisseki (研究・制作実績)");
+    for (const p of data.projects) {
+      if (p.name) drawTextLine(p.name, { size: 10, font: fontBold });
+      if (p.description) {
+        const bullets = p.description.split("\n").map(s => s.replace(/\*\*/g, "").trim()).filter(Boolean);
+        for (const b of bullets) {
+          const lines = wrapText(b, contentWidth - 15, 9, font);
+          lines.forEach((line, i) => {
+            checkPageBreak();
+            if (i === 0) {
+              page.drawCircle({ x: margin + 5, y: y + 3, size: 1.3 });
+              page.drawText(line, { x: margin + 15, y, size: 9, font });
+            } else {
+              page.drawText(line, { x: margin + 15, y, size: 9, font });
+            }
+            y -= 12;
+          });
+        }
+      }
+      y -= 5;
+    }
+    y -= 5;
+  }
+
+  // --- SELF PR / MOTIVATION (自己PR / 志望動機) ---
+  if (data.contact.headline) {
+    sectionTitle("Jiko PR / Shibou Douki (自己PR / 志望動機)");
+    const lines = wrapText(data.contact.headline, contentWidth, 10, font);
+    lines.forEach(line => drawTextLine(line, { size: 10, font }));
   }
 
   return await pdfDoc.save();
