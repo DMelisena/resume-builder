@@ -1,0 +1,257 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Welcome to Overleaf --- just edit your LaTeX on the left,
+% and we'll compile it for you on the right. If you open the
+% 'Share' menu, you can invite other users to edit at the same
+% time. See www.overleaf.com/learn for more info. Enjoy!
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\documentclass[11pt,letterpaper]{article}
+
+\usepackage[parfill]{parskip}
+\usepackage{array}
+\usepackage{ifthen}
+\usepackage[hidelinks]{hyperref}
+\usepackage[left=0.4in,top=0.3in,right=0.4in,bottom=0.3in]{geometry}
+\usepackage{fontawesome5}
+
+\pagestyle{empty}
+
+\makeatletter
+
+\def\name#1{\def\@name{#1}}
+\def\@name{}
+
+\def\addressSep{$\diamond$}
+
+\let\@addressone\relax
+\let\@addresstwo\relax
+\let\@addressthree\relax
+
+\def\address#1{%
+  \@ifundefined{@addresstwo}{%
+    \def\@addresstwo{#1}%
+  }{%
+    \@ifundefined{@addressthree}{%
+      \def\@addressthree{#1}%
+    }{%
+      \def\@addressone{#1}%
+    }%
+  }%
+}
+
+\def\printaddress#1{%
+  \begingroup
+    \def\\{\addressSep\ }
+    \centerline{#1}
+  \endgroup
+  \par
+  \addressskip
+}
+
+\def\printname{%
+  \begingroup
+    \hfil{\MakeUppercase{\namesize\bf\@name}}\hfil
+    \nameskip\break
+  \endgroup
+}
+
+\let\ori@document=\document
+\renewcommand{\document}{%
+  \ori@document
+  \printname
+  \@ifundefined{@addressone}{}{\printaddress{\@addressone}}
+  \@ifundefined{@addresstwo}{}{\printaddress{\@addresstwo}}
+  \@ifundefined{@addressthree}{}{\printaddress{\@addressthree}}
+}
+
+\newenvironment{rSection}[1]{%
+  \sectionskip
+  \MakeUppercase{\bf#1}
+  \sectionlineskip
+  \hrule
+  \begin{list}{}{\setlength{\leftmargin}{1.5em}}
+  \item[]
+}{%
+  \end{list}
+}
+
+\newenvironment{rSubsection}[4]{%
+  {\bf#1}\hfill{#2}
+  \ifthenelse{\equal{#3}{}}{}{\\{\em#3}\hfill{\em#4}}
+  \smallskip
+  \begin{list}{$\cdot$}{\leftmargin=0em}
+    \itemsep-0.5em \vspace{-0.5em}
+  }{%
+  \end{list}
+  \vspace{0.5em}
+}
+
+\def\namesize{\huge}
+\def\addressskip{\smallskip}
+\def\sectionlineskip{\medskip}
+\def\nameskip{\bigskip}
+\def\sectionskip{\medskip}
+
+\makeatother
+
+\name{Muhammad Arya Hanif}
+\address{
+    \href{http://wa.me/6285173342248}{+6285173342248} \\{Yogyakarta, Indonesia}
+}
+\address{
+  \href{https://portfolio.aryahanif.xyz}{portfolio.aryahanif.xyz} \\
+  \href{mailto:aryasenaria@gmail.com}{aryasenaria@gmail.com} \\
+  \href{https://linkedin.com/in/arya-hanif/}{linkedin.com/in/arya-hanif/}
+}
+\begin{document}
+
+\begin{rSection}{}
+
+Engineer with a background in scientific computing and hands-on experience building end-to-end systems, from Web and iOS applications to backend services and ML pipelines. Passionate about applying engineering and machine learning to real-world, data-driven problems.
+
+\end{rSection}
+
+\begin{rSection}{Projects}
+
+
+
+\href{https://Radikari Ownwed}{\textbf{HR Management System}~\faLink}
+
+\begin{itemize}
+\itemsep -0.45em
+\item Handled the postgresql and python functions in necessary for the systems
+\end{itemize}
+
+
+\href{https://Radikari Owned}{\textbf{Agentic System}~\faLink}
+
+\begin{itemize}
+\itemsep -0.45em
+\item Whatsapp, Telegram and google workspace integrated systems that utilizes python functions
+\end{itemize}
+
+
+\href{https://testflight.apple.com/join/Gq3z5Pus}{\textbf{Sealens}~\faLink}
+
+\begin{itemize}
+\itemsep -0.45em
+\item **1st place winner** of the **EU-Conexus Innovation Contest 2025**, organized by biomarine technology programs affiliated with **Erasmus**.
+\item Architected and implemented an end-to-end ML system spanning **dataset creation**, **video preprocessing**, **object detection**, **feature extraction**, **clustering**, **classification**, and **re-identification** and **object tracking** accessed through **REST API**s **microservices**.
+\item Developed and benchmarked multiple computer vision models (**YOLOv11/v12)**, **ResNet**, **Vision Transformers**, **Siamese networks** and custom CNNs to support rapid experimentation and iteration.
+\item Built automated **clustering** using **DBSCAN**, **KMeans**, and **PCA** for large-scale visual analysis.
+\item Designed a modular MLOps framework using **DVC** to version-control **60k+ images**, raw videos, embeddings, and experiment artifacts, enabling reproducible training and evaluation.
+\item Built a reliable video ingestion pipeline with resumable, chunked uploads (**TUS**), integrity verification, and automated frame extraction using **FFmpeg**.
+\item Deployed and operated backend services using **Flask** secured via **Cloudflare Tunnel** (production) and **Ngrok** deployed in **Railway**,  (development).
+\end{itemize}
+
+
+\href{https://Summon and Radikari owned}{\textbf{Knowledge/Learning Management System}~\faLink}
+
+\begin{itemize}
+\itemsep -0.45em
+\item Created the necessary qdrant system from the file ingestion to vector database storing for customer service and KYB service
+\end{itemize}
+
+
+\href{https://Summon owned}{\textbf{Occupational Safety and Health (OSH) Computer Vision}~\faLink}
+
+\begin{itemize}
+\itemsep -0.45em
+\item **1st place winner** of the **EU-Conexus Innovation Contest 2025**, organized by biomarine technology programs affiliated with **Erasmus**.
+\item Architected and implemented an end-to-end ML system spanning **dataset creation**, **video preprocessing**, **object detection**, **feature extraction**, **clustering**, **classification**, and **re-identification** and **object tracking** accessed through **REST API**s **microservices**.
+\item Developed and benchmarked multiple computer vision models (**YOLOv11/v12)**, **ResNet**, **Vision Transformers**, **Siamese networks** and custom CNNs to support rapid experimentation and iteration.
+\item Built automated **clustering** using **DBSCAN**, **KMeans**, and **PCA** for large-scale visual analysis.
+\item Designed a modular MLOps framework using **DVC** to version-control **60k+ images**, raw videos, embeddings, and experiment artifacts, enabling reproducible training and evaluation.
+\item Built a reliable video ingestion pipeline with resumable, chunked uploads (**TUS**), integrity verification, and automated frame extraction using **FFmpeg**.
+\item Deployed and operated backend services using **Flask** secured via **Cloudflare Tunnel** (production) and **Ngrok** deployed in **Railway**,  (development).
+\end{itemize}
+
+
+\href{https://portfolio.aryahanif.xyz/linac_dose}{\textbf{Particle Transportation Simulation}~\faLink}
+
+\begin{itemize}
+\itemsep -0.45em
+\item Developed radiation dose distribution heatmap visualizations to correct misunderstandings in radiotherapy bunker shielding design using **Monte Carlo particle transportation simulation**.
+\item Established a **Linux**-based simulation server accessed via an **SSH** tunnel, secured through **VPN** access to the university network.
+\item Evaluate the simulation results by doing comparison using **analytical calculations** and **real** radiation **dose measurement** of radiotherapy bunker in **Hasan Sadikin Public Hospital**.
+\end{itemize}
+
+
+\href{https://resume.aryahanif.xyz}{\textbf{Resume Builder}~\faLink}
+
+\begin{itemize}
+\itemsep -0.45em
+\item Implemented custom **LaTeX-to-PDF** resume maker with **ATS-friendly** document output using **React 18** and **TypeScript**, serving users with split-screen real-time editing and PDF preview
+\item Engineered **Express.js** backend with **RESTful API** proxy for secure LaTeX compilation, including CORS configuration and production deployment on **Vercel**
+\end{itemize}
+
+
+\href{https://portfolio.aryahanif.xyz}{\textbf{Odin Projects}~\faLink}
+
+\begin{itemize}
+\itemsep -0.45em
+\item Created **vanilla html** and **css** projects to deepen understand the fundamental styling layer behind web framework.
+\item created different projects spanning from Etch a Sketch, Tic Tac Toe, Library, and Admin Dashboard Layout.
+\end{itemize}
+
+
+\end{rSection}
+
+\begin{rSection}{Skills}
+
+\begin{tabular}{ @{} >{\bfseries}l @{\hspace{6ex}} l }
+Programming & Python, Swift, SwiftUI, Git, Shell\\
+
+DataScience & PyTorch, OpenCV, NumPy, Pandas, Scikit-Learn, SciPy\\
+
+Ops & Linux, Docker, Railway, Flask, vercel, npm, pip, ngrok, cloudflare\\
+
+Web & ChakraUI\\
+
+\end{tabular}
+
+\end{rSection}
+
+\begin{rSection}{Education}
+
+{\bf Nuclear Engineering} \hfill {Jul 2024} \\
+Universitas Gadjah Mada
+\\
+Yogyakarta, Indonesia
+
+{\bf ML Engineer} \hfill {Dec 2025} \\
+Apple Developer Academy @Binus Bali
+\\
+Bali, Indonesia
+
+{\bf ML Engineer} \hfill {Aug 2026} \\
+Apple Institute Jakarta
+\\
+Jakarta, Indonesia
+
+\end{rSection}
+
+\begin{rSection}{Experience}
+\begin{rSubsection}{Radikari}{Mar 2026 - Mar 2027}{AI System Engineer, Yogyakarta, Indonesia}{}
+\item Maintain the development of AI-driven HR management system.
+\end{rSubsection}
+
+\begin{rSubsection}{Summon}{June 2025 - Feb 2026}{AI Engineer, Bali, Indonesia}{}
+\item Create the computer vision model for helmet and vest object detection and create the flow for RAG implemented on a knowledge/learning management system.
+\end{rSubsection}
+
+\begin{rSubsection}{Dr. Hasan Sadikin Public Hospital}{Dec 2022 - Feb 2023}{Medical Physics Intern, Bandung, Indonesia}{}
+\item Executed supervised patient-specific treatment planning for **linear accelerator** and **teletherapy** for **cancer patients**.
+\item Performed **Quality Assurance** \& **Quality Control** for **radiodiagnostic**, **radiotherapy** and **nuclear medicine** departments.
+\end{rSubsection}
+
+\begin{rSubsection}{Electronics and Instrumentation Lab}{Jan 2021 - Jun 2021}{Teaching \& Lab Assistant, Yogyakarta, Indonesia}{}
+\item **Initiated curriculum update** for lab learning modules and pre-/post-test assessments for post covid classes.
+\item Monitored assessments and grading procedures for **100+ students** across department.
+\item Assisted students with instrumentation tools, sensors, measurement devices, and troubleshooting during practical sessions.
+\end{rSubsection}
+
+\end{rSection}
+
+\end{document}
