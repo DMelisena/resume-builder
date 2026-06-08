@@ -5,7 +5,7 @@ export default defineConfig({
   plugins: [react()],
   server: {
     proxy: {
-      '/api': 'http://localhost:3001',
+      '/api': 'http://localhost:3004',
     },
   },
   build: {
@@ -21,7 +21,9 @@ export default defineConfig({
         },
       },
     },
-    // Increase chunk size warning limit
     chunkSizeWarningLimit: 700,
+  },
+  esbuild: {
+    drop: ['console', 'debugger'],
   },
 })

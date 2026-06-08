@@ -44,7 +44,7 @@ const defaultResume = {
       startDate: 'Mar 2026',
       endDate: 'Mar 2027',
       location: 'Yogyakarta, Indonesia',
-      bullets: 'Maintain the development of .'
+      bullets: 'Maintain the development of AI-driven HR management system.'
     },
     {
       company: 'Summon',
@@ -144,16 +144,10 @@ export function useResumeBuilder() {
   const [isLatexEditorOpen, setIsLatexEditorOpen] = useState(false);
 
   const compile = async () => {
-    console.log("Starting compilation...");
-    console.log("Form data:", form);
     setIsCompiling(true);
-    // snapshot form to compiled
-    await new Promise((resolve) => setTimeout(resolve, 500));
     const snapshot = JSON.parse(JSON.stringify(form));
-    console.log("Snapshot created:", snapshot);
     setCompiled(snapshot);
     setIsCompiling(false);
-    console.log("Compilation complete. Compiled state updated.");
   };
 
   return {

@@ -1,4 +1,4 @@
-import { Box, Grid, GridItem, Stack } from '@chakra-ui/react';
+import { Box, Grid, GridItem, Stack, useToast } from '@chakra-ui/react';
 import { useState, useEffect } from 'react';
 import Header from '../components/Header';
 import FormPanel from '../components/FormPanel';
@@ -23,8 +23,10 @@ export default function Home() {
     isLatexEditorOpen,
     setIsLatexEditorOpen,
   } = useResumeBuilder();
+  const toast = useToast();
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
     return () => {
@@ -35,24 +37,76 @@ export default function Home() {
   }, [pdfUrl]);
 
   async function handleCompile() {
-    console.log("User clicked Compile");
-    await compile();
+    if (!form.contact.fullName?.trim()) {
+      toast({
+        status: 'warning',
+        title: 'Validation Error',
+        description: 'Full name is required before compiling.',
+      });
+      return;
+    }
+    setIsProcessing(true);
+    try {
+      await compile();
+    } finally {
+      setIsProcessing(false);
+    }
   }
 
   async function handleDownload() {
-    const { blob, filename } = await generatePdf(compiled, config);
-    downloadPdf(blob, filename);
+    if (!form.contact.fullName?.trim()) {
+      toast({
+        status: 'warning',
+        title: 'Validation Error',
+        description: 'Full name is required.',
+      });
+      return;
+    }
+    setIsProcessing(true);
+    try {
+      await compile();
+      const { blob, filename } = await generatePdf(form, config);
+      downloadPdf(blob, filename);
+    } catch (e: any) {
+      toast({
+        status: 'error',
+        title: 'Download Failed',
+        description: e?.message || 'An error occurred.',
+      });
+    } finally {
+      setIsProcessing(false);
+    }
   }
 
   async function handleExport() {
-    setIsGenerating(true);
-    if (pdfUrl) {
-      URL.revokeObjectURL(pdfUrl);
+    if (!form.contact.fullName?.trim()) {
+      toast({
+        status: 'warning',
+        title: 'Validation Error',
+        description: 'Full name is required.',
+      });
+      return;
     }
-    const { blob } = await generatePdf(compiled, config);
-    const url = URL.createObjectURL(blob);
-    setPdfUrl(url);
-    setIsGenerating(false);
+    setIsGenerating(true);
+    setIsProcessing(true);
+    try {
+      await compile();
+      if (pdfUrl) {
+        URL.revokeObjectURL(pdfUrl);
+      }
+      const { blob } = await generatePdf(form, config);
+      const url = URL.createObjectURL(blob);
+      setPdfUrl(url);
+    } catch (e: any) {
+      toast({
+        status: 'error',
+        title: 'Export Failed',
+        description: e?.message || 'An error occurred.',
+      });
+    } finally {
+      setIsGenerating(false);
+      setIsProcessing(false);
+    }
   }
 
   return (
@@ -61,6 +115,7 @@ export default function Home() {
         onCompile={handleCompile}
         onDownload={handleDownload}
         isCompiling={isCompiling}
+        isProcessing={isProcessing}
         onOpenLatex={() => setIsLatexEditorOpen(true)}
       />
       <Grid templateColumns={{ base: '1fr', lg: '1fr 1fr' }} gap={4}>

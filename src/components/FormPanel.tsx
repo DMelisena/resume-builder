@@ -37,11 +37,11 @@ export default function FormPanel({ form, onChange }: Props) {
 
   return (
     <VStack align="stretch" spacing={4}>
-      <Heading as="h3" size="md" mb={3}>
+      <Heading as="h2" size="md" mb={3}>
         {t('form')}
       </Heading>
       <Box p={4} bg="white" rounded="lg" shadow="sm" border="1px solid" borderColor="gray.200">
-        <Heading as="h4" size="sm" mb={3}>{t('contact')}</Heading>
+        <Heading as="h3" size="sm" mb={3}>{t('contact')}</Heading>
         <Grid templateColumns="repeat(2, 1fr)" gap={3}>
           <GridItem colSpan={2}>
             <FormControl>
@@ -82,14 +82,14 @@ export default function FormPanel({ form, onChange }: Props) {
 
       <Box p={4} bg="white" rounded="lg" shadow="sm" border="1px solid" borderColor="gray.200">
         <HStack justify="space-between" mb={3}>
-          <Heading as="h4" size="sm">{t('education')}</Heading>
+          <Heading as="h3" size="sm">{t('education')}</Heading>
           <Button leftIcon={<AddIcon />} size="sm" onClick={() => add('education')}>{t('add')}</Button>
         </HStack>
         <VStack align="stretch" spacing={4}>
           {form.education.map((ed, idx) => (
             <Box key={idx} p={3} border="1px solid" borderColor="gray.200" rounded="md">
               <HStack justify="space-between" mb={2}>
-                <Heading as="h5" size="sm">{ed.school || t('school')}</Heading>
+                <Heading as="h4" size="sm">{ed.school || t('school')}</Heading>
                 <IconButton aria-label="remove" icon={<DeleteIcon />} size="sm" variant="ghost" onClick={() => remove('education', idx)} />
               </HStack>
               <Grid templateColumns="repeat(2, 1fr)" gap={3}>
@@ -107,14 +107,14 @@ export default function FormPanel({ form, onChange }: Props) {
 
       <Box p={4} bg="white" rounded="lg" shadow="sm" border="1px solid" borderColor="gray.200">
         <HStack justify="space-between" mb={3}>
-          <Heading as="h4" size="sm">{t('experience')}</Heading>
+          <Heading as="h3" size="sm">{t('experience')}</Heading>
           <Button leftIcon={<AddIcon />} size="sm" onClick={() => add('experience')}>{t('add')}</Button>
         </HStack>
         <VStack align="stretch" spacing={4}>
           {form.experience.map((ex, idx) => (
             <Box key={idx} p={3} border="1px solid" borderColor="gray.200" rounded="md">
               <HStack justify="space-between" mb={2}>
-                <Heading as="h5" size="sm">{ex.company || t('company')}</Heading>
+                <Heading as="h4" size="sm">{ex.company || t('company')}</Heading>
                 <IconButton aria-label="remove" icon={<DeleteIcon />} size="sm" variant="ghost" onClick={() => remove('experience', idx)} />
               </HStack>
               <Grid templateColumns="repeat(2, 1fr)" gap={3}>
@@ -132,14 +132,14 @@ export default function FormPanel({ form, onChange }: Props) {
 
       <Box p={4} bg="white" rounded="lg" shadow="sm" border="1px solid" borderColor="gray.200">
         <HStack justify="space-between" mb={3}>
-          <Heading as="h4" size="sm">{t('projects')}</Heading>
+          <Heading as="h3" size="sm">{t('projects')}</Heading>
           <Button leftIcon={<AddIcon />} size="sm" onClick={() => add('projects')}>{t('add')}</Button>
         </HStack>
         <VStack align="stretch" spacing={4}>
           {form.projects.map((p, idx) => (
             <Box key={idx} p={3} border="1px solid" borderColor="gray.200" rounded="md">
               <HStack justify="space-between" mb={2}>
-                <Heading as="h5" size="sm">{p.name || t('name')}</Heading>
+                <Heading as="h4" size="sm">{p.name || t('name')}</Heading>
                 <IconButton aria-label="remove" icon={<DeleteIcon />} size="sm" variant="ghost" onClick={() => remove('projects', idx)} />
               </HStack>
               <Grid templateColumns="repeat(2, 1fr)" gap={3}>
@@ -153,7 +153,7 @@ export default function FormPanel({ form, onChange }: Props) {
       </Box>
 
       <Box p={4} bg="white" rounded="lg" shadow="sm" border="1px solid" borderColor="gray.200">
-        <Heading as="h4" size="sm" mb={3}>{t('skills')}</Heading>
+        <Heading as="h3" size="sm" mb={3}>{t('skills')}</Heading>
         <FormControl>
           <FormLabel>{t('skills')}</FormLabel>
           <Textarea placeholder={t('skillsHint') as string} value={form.skills} onChange={e => update('skills', e.target.value)} />

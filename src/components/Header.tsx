@@ -6,10 +6,11 @@ type Props = {
   onCompile: () => Promise<void>;
   onDownload: () => void;
   isCompiling: boolean;
+  isProcessing?: boolean;
   onOpenLatex?: () => void;
 };
 
-export default function Header({ onCompile, onDownload, isCompiling, onOpenLatex }: Props) {
+export default function Header({ onCompile, onDownload, isCompiling, isProcessing, onOpenLatex }: Props) {
   const { t } = useTranslation();
   const toast = useToast();
 
@@ -39,13 +40,15 @@ export default function Header({ onCompile, onDownload, isCompiling, onOpenLatex
 
   return (
     <Flex align="center" mb={6}>
-      <GradientPill>{t('appName')}</GradientPill>
+      <GradientPill as="h1" fontSize="xl">{t('appName')}</GradientPill>
       <Spacer />
       <HStack spacing={3}>
-        <GradientPill asButton onClick={handleCompile} isDisabled={isCompiling}>
+        <GradientPill asButton onClick={handleCompile} isDisabled={isCompiling || isProcessing}>
           {isCompiling ? t('compiling') : t('compile')}
         </GradientPill>
-        <GradientPill asButton onClick={handleDownload}>{t('download')}</GradientPill>
+        <GradientPill asButton onClick={handleDownload} isDisabled={isProcessing}>
+          {t('download')}
+        </GradientPill>
         {onOpenLatex && (
           <Button size="sm" variant="outline" onClick={onOpenLatex}>
             LaTeX

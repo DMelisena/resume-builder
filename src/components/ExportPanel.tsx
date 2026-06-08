@@ -25,7 +25,7 @@ export default function ExportPanel({ onGenerate, pdfUrl, isGenerating }: Export
       border="1px solid"
       borderColor="gray.200"
     >
-      <Heading as="h3" size="md" mb={2}>
+      <Heading as="h2" size="md" mb={2}>
         Export & Share
       </Heading>
       <Button onClick={onGenerate} isLoading={isGenerating} loadingText="Generating..." colorScheme="blue">

@@ -32,7 +32,7 @@ export default function PdfConfigPanel({ config, onChange }: Props) {
       border="1px solid"
       borderColor="gray.200"
     >
-      <Heading as="h3" size="md" mb={3}>
+      <Heading as="h2" size="md" mb={3}>
         {t("pdfConfig")}
       </Heading>
 
@@ -77,6 +77,7 @@ export default function PdfConfigPanel({ config, onChange }: Props) {
         <FormLabel>{t("hyperlinks")}</FormLabel>
         <HStack>
           <Switch
+            id="asLink-email"
             isChecked={config.asLinks.email}
             onChange={(e) =>
               onChange({
@@ -87,6 +88,7 @@ export default function PdfConfigPanel({ config, onChange }: Props) {
           />
           <Text>{t("email")}</Text>
           <Switch
+            id="asLink-linkedin"
             isChecked={config.asLinks.linkedin}
             onChange={(e) =>
               onChange({
@@ -97,6 +99,7 @@ export default function PdfConfigPanel({ config, onChange }: Props) {
           />
           <Text>{t("linkedin")}</Text>
           <Switch
+            id="asLink-website"
             isChecked={config.asLinks.website}
             onChange={(e) =>
               onChange({

@@ -8,10 +8,9 @@ import './i18n'
 
 const rootEl = document.getElementById('root')
 if (!rootEl) {
-  console.error('Root element #root not found')
-} else {
-  console.log('Bootstrapping Resume Builder...')
-  ReactDOM.createRoot(rootEl).render(
+  throw new Error('Root element #root not found')
+}
+ReactDOM.createRoot(rootEl).render(
     <BrowserRouter>
       <ChakraProvider theme={theme}>
         <ColorModeScript initialColorMode={theme.config.initialColorMode} />
@@ -19,4 +18,3 @@ if (!rootEl) {
       </ChakraProvider>
     </BrowserRouter>
   )
-}

@@ -8,8 +8,9 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 3004;
 
+app.disable('x-powered-by');
 app.use(cors());
 app.use(express.json({ limit: "5mb" }));
 
@@ -762,14 +763,12 @@ app.post("/api/compile", async (req, res) => {
     if (!data) return res.status(400).json({ error: "Resume data is required" });
     if (!data.contact) return res.status(400).json({ error: "Invalid resume data" });
 
-    console.log("Generating PDF using pdf-lib...");
     const pdfBytes = await generatePdf(data, template);
 
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader("Content-Disposition", "attachment; filename=resume.pdf");
     res.send(Buffer.from(pdfBytes));
   } catch (error) {
-    console.error("PDF generation error:", error);
     res.status(500).json({ error: "PDF generation failed", message: error.message });
   }
 });
@@ -778,6 +777,4 @@ app.get("*", (req, res) => {
   res.sendFile(path.join(distPath, "index.html"));
 });
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+app.listen(PORT, () => {});
