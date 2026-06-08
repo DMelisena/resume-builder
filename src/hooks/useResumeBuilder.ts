@@ -4,7 +4,7 @@ import type { ResumeData, PdfConfig, LatexConfig } from '../types';
 const defaultResume = {
   contact: {
     fullName: 'Muhammad Arya Hanif',
-    headline: 'Engineer with a background in scientific computing and hands-on experience building end-to-end systems, from iOS and macOS applications to backend services and ML pipelines. Passionate about applying engineering and machine learning to real-world, data-driven problems.',
+    headline: 'Engineer with a background in scientific computing and hands-on experience building end-to-end systems, from Web and iOS applications to backend services and ML pipelines. Passionate about applying engineering and machine learning to real-world, data-driven problems.',
     phone: '+6285173342248',
     email: 'aryasenaria@gmail.com',
     location: 'Yogyakarta, Indonesia',
@@ -22,14 +22,38 @@ const defaultResume = {
     },
     {
       school: 'Apple Developer Academy @Binus Bali',
-      degree: 'iOS Developer',
+      degree: 'ML Engineer',
       startDate: '',
       endDate: 'Dec 2025',
       location: 'Bali, Indonesia',
       notes: ''
+    },
+    {
+      school: 'Apple Institute Jakarta',
+      degree: 'ML Engineer',
+      startDate: '',
+      endDate: 'Aug 2026',
+      location: 'Jakarta, Indonesia',
+      notes: ''
     }
   ],
   experience: [
+    {
+      company: 'Radikari',
+      title: 'AI System Engineer',
+      startDate: 'Mar 2026',
+      endDate: 'Mar 2027',
+      location: 'Yogyakarta, Indonesia',
+      bullets: 'Maintain the development of .'
+    },
+    {
+      company: 'Summon',
+      title: 'AI Engineer',
+      startDate: 'June 2025',
+      endDate: 'Feb 2026',
+      location: 'Bali, Indonesia',
+      bullets: 'Create the computer vision model for helmet and vest object detection and create the flow for RAG implemented on a knowledge/learning management system.'
+    },
     {
       company: 'Dr. Hasan Sadikin Public Hospital',
       title: 'Medical Physics Intern',
@@ -49,8 +73,28 @@ const defaultResume = {
   ],
   projects: [
     {
+      name: 'HR Management System',
+      url: 'Radikari Ownwed',
+      description: 'Handled the postgresql and python functions in necessary for the systems'
+    },
+    {
+      name: 'Agentic System',
+      url: 'Radikari Owned',
+      description: 'Whatsapp, Telegram and google workspace integrated systems that utilizes python functions'
+    },
+    {
       name: 'Sealens',
       url: 'testflight.apple.com/join/Gq3z5Pus',
+      description: '**1st place winner** of the **EU-Conexus Innovation Contest 2025**, organized by biomarine technology programs affiliated with **Erasmus**.\nArchitected and implemented an end-to-end ML system spanning **dataset creation**, **video preprocessing**, **object detection**, **feature extraction**, **clustering**, **classification**, and **re-identification** and **object tracking** accessed through **REST API**s **microservices**.\nDeveloped and benchmarked multiple computer vision models (**YOLOv11/v12)**, **ResNet**, **Vision Transformers**, **Siamese networks** and custom CNNs to support rapid experimentation and iteration.\nBuilt automated **clustering** using **DBSCAN**, **KMeans**, and **PCA** for large-scale visual analysis.\nDesigned a modular MLOps framework using **DVC** to version-control **60k+ images**, raw videos, embeddings, and experiment artifacts, enabling reproducible training and evaluation.\nBuilt a reliable video ingestion pipeline with resumable, chunked uploads (**TUS**), integrity verification, and automated frame extraction using **FFmpeg**.\nDeployed and operated backend services using **Flask** secured via **Cloudflare Tunnel** (production) and **Ngrok** deployed in **Railway**,  (development).'
+    },
+    {
+      name: 'Knowledge/Learning Management System',
+      url: 'Summon and Radikari owned',
+      description: 'Created the necessary qdrant system from the file ingestion to vector database storing for customer service and KYB service\n'
+    },
+    {
+      name: 'Occupational Safety and Health (OSH) Computer Vision',
+      url: 'Summon owned',
       description: '**1st place winner** of the **EU-Conexus Innovation Contest 2025**, organized by biomarine technology programs affiliated with **Erasmus**.\nArchitected and implemented an end-to-end ML system spanning **dataset creation**, **video preprocessing**, **object detection**, **feature extraction**, **clustering**, **classification**, and **re-identification** and **object tracking** accessed through **REST API**s **microservices**.\nDeveloped and benchmarked multiple computer vision models (**YOLOv11/v12)**, **ResNet**, **Vision Transformers**, **Siamese networks** and custom CNNs to support rapid experimentation and iteration.\nBuilt automated **clustering** using **DBSCAN**, **KMeans**, and **PCA** for large-scale visual analysis.\nDesigned a modular MLOps framework using **DVC** to version-control **60k+ images**, raw videos, embeddings, and experiment artifacts, enabling reproducible training and evaluation.\nBuilt a reliable video ingestion pipeline with resumable, chunked uploads (**TUS**), integrity verification, and automated frame extraction using **FFmpeg**.\nDeployed and operated backend services using **Flask** secured via **Cloudflare Tunnel** (production) and **Ngrok** deployed in **Railway**,  (development).'
     },
     {
