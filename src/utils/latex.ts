@@ -39,6 +39,9 @@ export function buildLatex(data: ResumeData, cfg: LatexConfig): string {
   if (cfg.template === "jp-portfolio") {
     return buildJapanesePortfolioLatex(data, cfg);
   }
+  if (cfg.template === "jp-cv") {
+    return buildJapaneseCVLatex(data, cfg);
+  }
   return buildEnglishLatex(data, cfg);
 }
 
@@ -536,6 +539,208 @@ function buildJapanesePortfolioLatex(data: ResumeData, cfg: LatexConfig): string
       lines.push(`${date} & ${right} \\\\`);
     });
     lines.push("\\end{tabular}");
+    lines.push("");
+  }
+
+  lines.push("\\vfill");
+  lines.push("\\begin{flushright}");
+  lines.push("\\small 以上");
+  lines.push("\\end{flushright}");
+  lines.push("");
+  lines.push("\\end{document}");
+
+  return lines.join("\n");
+}
+
+/**
+ * Japanese formal CV (履歴書 / Rirekisho style).
+ * Structured grid layout with combined Education+Experience table
+ * and dedicated Licenses/Qualifications section.
+ *
+ * Compile with LuaLaTeX on Overleaf.
+ */
+function buildJapaneseCVLatex(data: ResumeData, cfg: LatexConfig): string {
+  const lines: string[] = [];
+
+  lines.push("% !TEX program = lualatex");
+  lines.push("\\documentclass[11pt,a4paper]{ltjsarticle}");
+  lines.push("");
+  lines.push("\\usepackage{luatexja-fontspec}");
+  lines.push("\\usepackage[hidelinks]{hyperref}");
+  lines.push("\\usepackage[left=18mm,top=16mm,right=18mm,bottom=16mm]{geometry}");
+  lines.push("\\usepackage{array}");
+  lines.push("\\usepackage{enumitem}");
+  lines.push("\\usepackage{titlesec}");
+  lines.push("\\usepackage{fontawesome5}");
+  lines.push("\\usepackage{multirow}");
+  lines.push("");
+  lines.push("\\setlist{nosep,leftmargin=1.2em}");
+  lines.push("\\pagestyle{empty}");
+  lines.push("");
+  lines.push("\\renewcommand{\\arraystretch}{1.3}");
+  lines.push("");
+  lines.push("\\begin{document}");
+  lines.push("");
+
+  const fullName = data.contact.fullName || "氏名";
+  const now = new Date();
+  const jpYear = now.getFullYear();
+  const jpMonth = String(now.getMonth() + 1).padStart(2, "0");
+  const jpDay = String(now.getDate()).padStart(2, "0");
+
+  // ===== TITLE =====
+  lines.push("\\begin{center}");
+  lines.push(`{\\LARGE\\bfseries 履 歴 書}\\\\[1em]`);
+  lines.push(`\\hrule`);
+  lines.push(`\\vspace{0.5em}`);
+  lines.push(`{\\large ${escapeLatex(fullName)}}\\\\[0.3em]`);
+  lines.push(`{\\small ${jpYear}年${jpMonth}月${jpDay}日 現在}`);
+  lines.push("\\end{center}");
+  lines.push("");
+
+  // ===== PERSONAL INFO (基本情報) =====
+  lines.push("\\section*{■ 基本情報}");
+  lines.push("\\begin{tabular}{|p{3.5cm}|p{12cm}|}");
+  lines.push("\\hline");
+  lines.push(`氏名 & ${escapeLatex(fullName)} \\\\`);
+  lines.push("\\hline");
+  if (data.contact.location) {
+    lines.push(`現住所 & ${escapeLatex(data.contact.location)} \\\\`);
+    lines.push("\\hline");
+  }
+  if (data.contact.phone) {
+    lines.push(`電話番号 & ${escapeLatex(data.contact.phone)} \\\\`);
+    lines.push("\\hline");
+  }
+  if (data.contact.email) {
+    const emailLink = cfg.asLinks.email
+      ? `\\href{mailto:${data.contact.email}}{${escapeLatex(data.contact.email)}}`
+      : escapeLatex(data.contact.email);
+    lines.push(`メール & ${emailLink} \\\\`);
+    lines.push("\\hline");
+  }
+  if (data.contact.website) {
+    const url = data.contact.website.startsWith("http")
+      ? data.contact.website
+      : `https://${data.contact.website}`;
+    const link = cfg.asLinks.website
+      ? `\\href{${url}}{${escapeLatex(data.contact.website)}}`
+      : escapeLatex(data.contact.website);
+    lines.push(`ポートフォリオ & ${link} \\\\`);
+    lines.push("\\hline");
+  }
+  if (data.contact.linkedin) {
+    const url = data.contact.linkedin.startsWith("http")
+      ? data.contact.linkedin
+      : `https://${data.contact.linkedin}`;
+    const link = cfg.asLinks.linkedin
+      ? `\\href{${url}}{${escapeLatex(data.contact.linkedin)}}`
+      : escapeLatex(data.contact.linkedin);
+    lines.push(`LinkedIn & ${link} \\\\`);
+    lines.push("\\hline");
+  }
+  lines.push("\\end{tabular}");
+  lines.push("");
+
+  // ===== EDUCATION + EXPERIENCE TABLE (学歴・職歴) =====
+  lines.push("\\section*{■ 学歴・職歴}");
+  lines.push("\\begin{tabular}{|p{2.8cm}|p{1.5cm}|p{11cm}|}");
+  lines.push("\\hline");
+  lines.push("\\textbf{年月} & \\textbf{区分} & \\textbf{内容} \\\\");
+  lines.push("\\hline");
+
+  // Education rows (oldest first, classic JP CV style)
+  if (data.education?.length) {
+    const sortedEd = [...data.education].sort((a, b) =>
+      (a.endDate || "").localeCompare(b.endDate || "")
+    );
+    sortedEd.forEach((ed, i) => {
+      const date = ed.endDate ? escapeLatex(ed.endDate) : "";
+      const school = ed.school ? escapeLatex(ed.school) : "";
+      const degree = ed.degree ? escapeLatex(ed.degree) : "";
+      const right = [school, degree].filter(Boolean).join(" / ");
+      const label = i === 0 ? "\\textbf{学歴}" : "";
+      lines.push(`${date} & ${label} & ${right} \\\\`);
+      lines.push("\\hline");
+    });
+  }
+
+  // Experience rows
+  if (data.experience?.length) {
+    const sortedEx = [...data.experience].sort((a, b) =>
+      (a.startDate || "").localeCompare(b.startDate || "")
+    );
+    sortedEx.forEach((ex, i) => {
+      const date = [ex.startDate, ex.endDate].filter(Boolean).join(" 〜 ");
+      const dateEsc = escapeLatex(date);
+      const company = ex.company ? escapeLatex(ex.company) : "";
+      const title = ex.title ? escapeLatex(ex.title) : "";
+      const right = [company, title].filter(Boolean).join(" — ");
+      const label = i === 0 ? "\\textbf{職歴}" : "";
+      lines.push(`${dateEsc} & ${label} & ${right} \\\\`);
+      if (ex.bullets) {
+        const bullets = ex.bullets.split(/\r?\n/).map((s) => s.trim()).filter(Boolean);
+        bullets.forEach((b) => {
+          const clean = b.replace(/\*\*/g, "");
+          lines.push(` & & \\small{${escapeLatex(clean)}} \\\\`);
+        });
+      }
+      lines.push("\\hline");
+    });
+  }
+
+  lines.push(" & & \\hfill\\textbf{以上} \\\\");
+  lines.push("\\hline");
+  lines.push("\\end{tabular}");
+  lines.push("");
+
+  // ===== SKILLS (免許・資格 / 技術スキル) =====
+  if (data.skills) {
+    lines.push("\\section*{■ 免許・資格 / 技術スキル}");
+    lines.push("\\begin{tabular}{|p{4.5cm}|p{11cm}|}");
+    lines.push("\\hline");
+    const categories = data.skills.split("|").map((s) => s.trim()).filter(Boolean);
+    categories.forEach((cat) => {
+      const idx = cat.indexOf(":");
+      if (idx > 0) {
+        const category = cat.substring(0, idx).trim();
+        const items = cat.substring(idx + 1).trim();
+        lines.push(`${escapeLatex(category)} & ${escapeLatex(items)} \\\\`);
+        lines.push("\\hline");
+      }
+    });
+    lines.push("\\end{tabular}");
+    lines.push("");
+  }
+
+  // ===== PROJECTS (研究・制作実績) =====
+  if (data.projects?.length) {
+    lines.push("\\section*{■ 研究・制作実績}");
+    data.projects.forEach((p) => {
+      const name = p.name ? escapeLatex(p.name) : "プロジェクト";
+      if (p.url) {
+        const url = p.url.startsWith("http") ? p.url : `https://${p.url}`;
+        lines.push(`\\noindent\\textbf{${name}}~\\href{${url}}{\\faLink}\\\\`);
+      } else {
+        lines.push(`\\noindent\\textbf{${name}}\\\\`);
+      }
+      if (p.description) {
+        const bullets = p.description.split(/\r?\n/).map((s) => s.trim()).filter(Boolean);
+        if (bullets.length) {
+          lines.push("\\begin{itemize}");
+          bullets.forEach((b) => lines.push(`\\item ${escapeLatex(b)}`));
+          lines.push("\\end{itemize}");
+        }
+      }
+      lines.push("\\vspace{0.4em}");
+    });
+    lines.push("");
+  }
+
+  // ===== SELF PR / MOTIVATION (自己PR / 志望動機) =====
+  if (data.contact.headline) {
+    lines.push("\\section*{■ 自己PR / 志望動機}");
+    lines.push(escapeLatex(data.contact.headline));
     lines.push("");
   }
 
